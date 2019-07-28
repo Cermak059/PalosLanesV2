@@ -1,0 +1,97 @@
+<resources>
+    <string name="app_name">PalosLanesApp</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">Welcome to Palos Lanes</string>
+    <string name="nav_header_subtitle">11025 Southwest Highway</string>
+    <string name="nav_header_subtitle2">Palos Hills 60465</string>
+    <string name="nav_header_subtitle3">708-974-3200</string>
+    <string name="nav_header_desc">Navigation header</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="menu_home">Home</string>
+    <string name="HeaderIMG">Palos Lanes Header</string>
+    <string name="Username">Enter Username</string>
+    <string name="Password">Enter Password</string>
+    <string name="checkRemember">Remember Me</string>
+    <string name="Login">Login</string>
+    <string name="NewAccount">Don\'t have an account with us?</string>
+    <string name="ClickHere">Click Here</string>
+    <string name="SubHeaderSign">Please fill out this form below to create an account!</string>
+
+    <string-array name="spinner_month">
+        <item>Month</item>
+        <item>01</item>
+        <item>02</item>
+        <item>03</item>
+        <item>04</item>
+        <item>05</item>
+        <item>06</item>
+        <item>07</item>
+        <item>08</item>
+        <item>09</item>
+        <item>10</item>
+        <item>11</item>
+        <item>12</item>
+    </string-array>
+    <string-array name="spinner_Day">
+        <item>Day</item>
+        <item>01</item>
+        <item>02</item>
+        <item>03</item>
+        <item>04</item>
+        <item>05</item>
+        <item>06</item>
+        <item>07</item>
+        <item>08</item>
+        <item>09</item>
+        <item>10</item>
+        <item>11</item>
+        <item>12</item>
+        <item>13</item>
+        <item>14</item>
+        <item>15</item>
+        <item>16</item>
+        <item>17</item>
+        <item>18</item>
+        <item>19</item>
+        <item>20</item>
+        <item>21</item>
+        <item>22</item>
+        <item>23</item>
+        <item>24</item>
+        <item>25</item>
+        <item>26</item>
+        <item>27</item>
+        <item>28</item>
+        <item>29</item>
+        <item>30</item>
+        <item>31</item>
+    </string-array>
+    <string name="Birth">Birthdate:</string>
+    <string name="Email">Email:</string>
+    <string name="EmailExample">Bowling123@yahoo.com</string>
+    <string name="ExampleFirst">John</string>
+    <string name="ExampleLast">Doe</string>
+    <string name="FirstN">First Name:</string>
+    <string name="LastN">Last Name:</string>
+    <string name="PhoneN">Phone:</string>
+    <string name="ExamplePhone">708-123-1234</string>
+    <string name="HeaderSign">CREATE ACCOUNT</string>
+    <string name="LeagueMem">Are you a current league member?</string>
+    <string name="CheckYes">Yes</string>
+    <string name="CheckNo">No</string>
+    <string name="SubHead">CREATE CREDENTIALS</string>
+    <string name="NewUser">Username:</string>
+    <string name="NewPass">Password:</string>
+    <string name="ConfirmPass">Confirm:</string>
+    <string name="PassExample">Bowling1234</string>
+    <string name="ConPassExample">Enter Password Again</string>
+    <string name="btnSub">Submit</string>
+    <string name="NavStandings">League Standings</string>
+    <string name="NavSignUp">League Sign Up</string>
+    <string name="menu_coupons">Coupons</string>
+    <string name="Nav_Loyalty">Loyalty/Rewards</string>
+    <string name="title_activity_coupons_page">CouponsPage</string>
+    <string name="menu_gallery">Gallery</string>
+</resources>
