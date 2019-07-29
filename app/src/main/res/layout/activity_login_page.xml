@@ -58,7 +58,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
-        android:onClick="btnLogin"
+        android:onClick="btnClick"
         android:text="@string/Login"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
@@ -69,9 +69,7 @@
         android:id="@+id/textBottom"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:layout_marginLeft="24dp"
-        android:layout_marginBottom="103dp"
+        android:layout_marginBottom="102dp"
         android:text="@string/NewAccount"
         android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -89,6 +87,8 @@
         android:text="@string/ClickHere"
         android:textColor="#0000FF"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toEndOf="@+id/textBottom" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
