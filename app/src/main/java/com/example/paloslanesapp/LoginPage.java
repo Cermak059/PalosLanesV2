@@ -36,9 +36,13 @@ public class LoginPage extends AppCompatActivity {
                 User.requestFocus();
                 User.setError("Field cannot be empty");
             }
+            else if (Username.length()==1) {
+                User.requestFocus();
+                User.setError("Must be atleast 2 characters");
+            }
             else  if(!Username.matches("[a-zA-Z]+")) {
                 User.requestFocus();
-                User.setError("Use only Alpabetical characters");
+                User.setError("Use only alpabetical characters");
             }
             else if (Password.length()==0) {
                 Pass.requestFocus();
@@ -57,7 +61,6 @@ public class LoginPage extends AppCompatActivity {
         Intent homepage = new Intent(this,MainActivity.class);
         startActivity(homepage);
     }
-
     public void btnClick (View view) {
         Intent signup = new Intent(this,SignUpPage.class);
         startActivity(signup);
