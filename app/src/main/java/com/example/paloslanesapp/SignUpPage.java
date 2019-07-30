@@ -38,6 +38,28 @@ public class SignUpPage extends AppCompatActivity {
         final EditText bDay = (EditText) findViewById(R.id.editBirthDate);
         Button submit = (Button) findViewById(R.id.btnSubmit);
 
+        //Format text for dates with /
+        bDay.addTextChangedListener(new TextWatcher() {
+
+            int beforeLength;
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                beforeLength = bDay.length();
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int count, int after) {
+                int dates = bDay.getText().toString().length();
+                if (beforeLength < dates && (dates == 2 || dates == 5)) {
+                    bDay.append("/");
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+
         //Format text for phone numbers with -
         phone.addTextChangedListener(new TextWatcher() {
 
