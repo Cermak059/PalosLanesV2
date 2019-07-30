@@ -5,6 +5,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.telecom.Call;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -35,6 +37,28 @@ public class SignUpPage extends AppCompatActivity {
         final EditText phone = (EditText) findViewById(R.id.editPhone);
         final EditText bDay = (EditText) findViewById(R.id.editBirthDate);
         Button submit = (Button) findViewById(R.id.btnSubmit);
+
+        //Format text for phone numbers with -
+        phone.addTextChangedListener(new TextWatcher() {
+
+            int beforeLength;
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                beforeLength = phone.length();
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                int digits = phone.getText().toString().length();
+                if (beforeLength < digits && (digits == 3 || digits == 7)) {
+                    phone.append("-");
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) { }
+        });
 
         //Create onClickListener for button submit
         submit.setOnClickListener(new View.OnClickListener() {
@@ -72,7 +96,8 @@ public class SignUpPage extends AppCompatActivity {
                     lname.requestFocus();
                     lname.setError("Use only alphabetical characters");
                 }
-                else if (Birthday.length()==12) {
+                //Validate birthday text
+                else if (Birthday.length()!=10) {
                     bDay.requestFocus();
                     bDay.setError("Must us the format 00/00/0000");
                 }
@@ -80,10 +105,12 @@ public class SignUpPage extends AppCompatActivity {
                     bDay.requestFocus();
                     bDay.setError("Use only numerical characters");
                 }
+                //Validate email text
                 else if (Email.length()==0) {
                     email.requestFocus();
                     email.setError("Field cannot be empty");
                 }
+                //Validate phone text
                 else if (Phone.length()!=12) {
                     phone.requestFocus();
                     phone.setError("Must use format 123-123-1234");
