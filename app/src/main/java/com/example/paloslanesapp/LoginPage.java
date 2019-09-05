@@ -114,7 +114,7 @@ public class LoginPage extends AppCompatActivity {
         Intent homepage = new Intent(this,MainActivity.class);
         startActivity(homepage);
     }
-    public void btnClick (View view) {
+    public void btnRegister (View view) {
         Intent signup = new Intent(this,SignUpPage.class);
         startActivity(signup);
     }

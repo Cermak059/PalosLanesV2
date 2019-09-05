@@ -16,7 +16,7 @@
     <string name="checkRemember">Remember Me</string>
     <string name="Login">Login</string>
     <string name="NewAccount">Don\'t have an account with us?</string>
-    <string name="ClickHere">Click Here</string>
+    <string name="RegisterHere">Register Here</string>
     <string name="SubHeaderSign">Please fill out this form below to create an account!</string>
 
     //Key value pairs for shared preferences

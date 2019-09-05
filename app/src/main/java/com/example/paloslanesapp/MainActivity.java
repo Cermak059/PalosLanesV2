@@ -63,11 +63,7 @@ public class MainActivity extends AppCompatActivity
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        if (id == R.id.menu_Login) {
-            Intent login = new Intent(this,LoginPage.class);
-            startActivity(login);
-        }
-        else if (id == R.id.menu_Logout) {
+        if (id == R.id.menu_Logout) {
             Intent logout = new Intent(this,LoginPage.class);
             startActivity(logout);
         }
