@@ -17,14 +17,18 @@ class UserSchema(Schema):
           if not match:
                raise ValidationError("Incorrect values for first name")
 
+
           #TODO eliminate capitals in middle of string
+
 
         #validate format for last name
           match = re.search("^[A-Z]{1}[a-z]", users["Lname"])
           if not match:
                raise ValidationError("Incorrect values for last name")
 
+
           #TODO eliminate capitals in middle of string
+
 
           #validate format for birthdate date 00/00/0000
           match = re.search("^(\d{2})\/(\d{2})\/(\d{4})$", users["Birthdate"])
@@ -47,7 +51,9 @@ class UserSchema(Schema):
           if not match:
                raise ValidationError("Incorrect username formatting.")
 
+
           #TODO check to see if username already exists
+
 
           #validate password format
           match = re.search("[a-zA-Z0-9_]", users["Password"])
@@ -79,10 +85,13 @@ class Register(Resource):
         #Instantiate schema and load requested data into dictionary
         schema = UserSchema()
         data=json.loads(request.data)
+
         #Create new user by loading data from dictionary into UserSchema
         new_user = schema.load(data)
+
         #Uodate the users dictionary with new user after passing schema
         users.update(new_user)
+        
         #now validate formatting of user data with validate_Data method
         UserSchema.validate_Data(users)
         print(users)
