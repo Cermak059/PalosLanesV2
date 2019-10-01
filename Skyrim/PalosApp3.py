@@ -1,6 +1,7 @@
 from flask import Flask, request
 from flask_restplus import Api, Resource
 from marshmallow import Schema, fields, validate, pprint, ValidationError, post_load, pre_load
+from passlib.hash import sha256_crypt
 import pprint
 import json
 import re
@@ -55,10 +56,14 @@ class UserSchema(Schema):
           #TODO check to see if username already exists
 
 
-          #validate password format
+          #validate password format and hash it
           match = re.search("[a-zA-Z0-9_]", users["Password"])
-          if not match:
+          if match:
+              hashedPassword = EncryptPassword(users["Password"])
+              users.update({'Password' : hashedPassword})
+          else:
                raise ValidationError("Not a valid password")
+
 
           return users
 
@@ -74,6 +79,11 @@ class UserSchema(Schema):
 
 #Create user dictionary
 users = {}
+
+#Password hashing method
+def EncryptPassword(Password):
+    hashedPassword = sha256_crypt.encrypt(Password)
+    return hashedPassword.encode("hex")
 
 class Register(Resource):
     def get(self):
@@ -91,7 +101,7 @@ class Register(Resource):
 
         #Uodate the users dictionary with new user after passing schema
         users.update(new_user)
-        
+
         #now validate formatting of user data with validate_Data method
         UserSchema.validate_Data(users)
         print(users)
