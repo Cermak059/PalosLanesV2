@@ -22,7 +22,7 @@ class UserSchema(Schema):
           #TODO eliminate capitals in middle of string
 
 
-        #validate format for last name
+          #validate format for last name
           match = re.search("^[A-Z]{1}[a-z]", users["Lname"])
           if not match:
                raise ValidationError("Incorrect values for last name")
@@ -82,7 +82,7 @@ users = {}
 
 #Password hashing method
 def EncryptPassword(Password):
-    hashedPassword = sha256_crypt.encrypt(Password)
+    hashedPassword = sha256_crypt.hash(Password)
     return hashedPassword.encode("hex")
 
 class Register(Resource):
@@ -108,6 +108,11 @@ class Register(Resource):
         return{'result' : 'User added'}, 201
 
 
+class Login(Resource):
+     def post(self):
+          schema = UserSchema()
+          data = json.loads(request.data)
+          check_user = schema.load(data, partial=("Fname","Lname","Birthdate","Phone","Email","League"))
 
 
 api.add_resource(Register, '/Register')
