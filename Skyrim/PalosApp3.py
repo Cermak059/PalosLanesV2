@@ -18,18 +18,14 @@ class UserSchema(Schema):
           if not match:
                raise ValidationError("Incorrect values for first name")
 
-
           #TODO eliminate capitals in middle of string
-
 
           #validate format for last name
           match = re.search("^[A-Z]{1}[a-z]", users["Lname"])
           if not match:
                raise ValidationError("Incorrect values for last name")
 
-
           #TODO eliminate capitals in middle of string
-
 
           #validate format for birthdate date 00/00/0000
           match = re.search("^(\d{2})\/(\d{2})\/(\d{4})$", users["Birthdate"])
@@ -52,9 +48,7 @@ class UserSchema(Schema):
           if not match:
                raise ValidationError("Incorrect username formatting.")
 
-
           #TODO check to see if username already exists
-
 
           #validate password format and hash it
           match = re.search("[a-zA-Z0-9_]", users["Password"])
@@ -83,38 +77,46 @@ users = {}
 #Password hashing method
 def EncryptPassword(Password):
     hashedPassword = sha256_crypt.hash(Password)
-    return hashedPassword.encode("hex")
+    return hashedPassword
+
+#Verify stored password with password to be checked
+def VerifyPassword(chck_Password, stored_Password):
+     return sha256_crypt.verify(chck_Password, stored_Password)
 
 class Register(Resource):
-    def get(self):
-        schema = UserSchema(many=True)
-        return schema.dump(users)
-
-
     def post(self):
         #Instantiate schema and load requested data into dictionary
         schema = UserSchema()
         data=json.loads(request.data)
-
         #Create new user by loading data from dictionary into UserSchema
         new_user = schema.load(data)
-
         #Uodate the users dictionary with new user after passing schema
         users.update(new_user)
-
-        #now validate formatting of user data with validate_Data method
+        #Now validate formatting of user data with validate_Data method
         UserSchema.validate_Data(users)
         print(users)
         return{'result' : 'User added'}, 201
 
-
 class Login(Resource):
      def post(self):
+          #Instantiate schema and load login data into dictionary
           schema = UserSchema()
           data = json.loads(request.data)
+          #Check user login data against schema
           check_user = schema.load(data, partial=("Fname","Lname","Birthdate","Phone","Email","League"))
+          #Create new variables for password verification
+          chck_Password = data['Password']
+          stored_Password = users['Password']
+          #Determine if stored and password to check match
+          #If so log in
+          if VerifyPassword(chck_Password, stored_Password):
+               print("Login Successful")
+          else:
+               print("Login Failed")
 
 
+
+api.add_resource(Login, '/Login')
 api.add_resource(Register, '/Register')
 
 
