@@ -1,13 +1,7 @@
-from flask import Flask, request
-from flask_restplus import Api, Resource
-from marshmallow import Schema, fields, validate, pprint, ValidationError, post_load, pre_load
-from passlib.hash import sha256_crypt
-import pprint
-import json
 import re
-
-app = Flask(__name__)
-api = Api(app)
+from marshmallow import Schema, fields, validate, ValidationError
+from pacrypto import EncryptPassword, \
+                     VerifyPassword
 
 
 class UserSchema(Schema):
@@ -58,7 +52,7 @@ class UserSchema(Schema):
           else:
                raise ValidationError("Not a valid password")
 
-
+          
           return users
 
      #Define the schema with parameters for new user registry
@@ -70,55 +64,3 @@ class UserSchema(Schema):
      League = fields.Boolean(required=True)
      Username = fields.String(validate=validate.Length(min=3, max=12),required=True)
      Password = fields.String(validate=validate.Length(min=6, max=12),required=True)
-
-#Create user dictionary
-users = {}
-
-#Password hashing method
-def EncryptPassword(Password):
-    hashedPassword = sha256_crypt.hash(Password)
-    return hashedPassword
-
-#Verify stored password with password to be checked
-def VerifyPassword(chck_Password, stored_Password):
-     return sha256_crypt.verify(chck_Password, stored_Password)
-
-class Register(Resource):
-    def post(self):
-        #Instantiate schema and load requested data into dictionary
-        schema = UserSchema()
-        data=json.loads(request.data)
-        #Create new user by loading data from dictionary into UserSchema
-        new_user = schema.load(data)
-        #Uodate the users dictionary with new user after passing schema
-        users.update(new_user)
-        #Now validate formatting of user data with validate_Data method
-        UserSchema.validate_Data(users)
-        print(users)
-        return{'result' : 'User added'}, 201
-
-class Login(Resource):
-     def post(self):
-          #Instantiate schema and load login data into dictionary
-          schema = UserSchema()
-          data = json.loads(request.data)
-          #Check user login data against schema
-          check_user = schema.load(data, partial=("Fname","Lname","Birthdate","Phone","Email","League"))
-          #Create new variables for password verification
-          chck_Password = data['Password']
-          stored_Password = users['Password']
-          #Determine if stored and password to check match
-          #If so log in
-          if VerifyPassword(chck_Password, stored_Password):
-               print("Login Successful")
-          else:
-               print("Login Failed")
-
-
-
-api.add_resource(Login, '/Login')
-api.add_resource(Register, '/Register')
-
-
-if __name__ == '__main__':
-    app.run(debug=True)
