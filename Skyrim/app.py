@@ -5,22 +5,22 @@ import pprint
 import json
 import re
 import pymongo
+from datetime import datetime
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
 from paapi import PaApi
 from paschema import UserSchema
-from pacrypto import EncryptPassword, \
-                     VerifyPassword, \
+from pamongo import Authorization,\
+                    collection,\
+                    authCollection
+
+from pacrypto import EncryptPassword,\
+                     VerifyPassword,\
                      GenerateToken
+
 
 app = Flask(__name__)
 api = Api(app)
-
-#setup initial connection to MongoDB cluster and DB
-client = MongoClient("mongodb+srv://Cermak059:Pieman1993!@cluster0-nuw5p.mongodb.net/test?retryWrites=true&w=majority")
-db = client["PalosTest"]
-collection = db["Users"]
-authCollection = db["Auth"]
 
 
 apiClient = PaApi
@@ -52,6 +52,9 @@ class Register(Resource):
         if collection.find_one({"Email": new_user['Email']}):
             return apiClient.badRequest("You already have an account")
         else:
+            #Create timestamp and update new_user data for db entry
+            ts = datetime.utcnow().isoformat
+            new_user.update(Timestamp = ts)
             collection.insert_one(new_user)
             return apiClient.success("User added")
 
@@ -136,12 +139,6 @@ class Users(Resource):
         return results
 
 
-def Authorization(token):
-    authResults = authCollection.find_one({"Token": token})
-    if not authResults:
-        return None
-
-    return authResults['Username']
 
 api.add_resource(Login, '/Login')
 api.add_resource(Register, '/Register')
