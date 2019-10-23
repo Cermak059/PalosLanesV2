@@ -7,12 +7,11 @@ MONGO_DNS = MongoClient("mongodb+srv://Cermak059:Pieman1993!@cluster0-nuw5p.mong
 db = MONGO_DNS["PalosTest"]
 collection = db["Users"]
 authCollection = db["Auth"]
-        
+
 def Authorization(token):
+    #Find token in authCollection 
     authResults = authCollection.find_one({"Token": token})
     if not authResults:
         return None
 
     return authResults['Username']
-
-        
