@@ -13,10 +13,12 @@ from paapi import PaApi
 from paschema import UserSchema
 from pamongo import Authorization,\
                     collection,\
-                    authCollection
+                    authCollection,\
+                    tempCollection
 from pacrypto import EncryptPassword,\
                      VerifyPassword,\
-                     GenerateToken
+                     GenerateToken,\
+                     getExpirationTime
 
 
 app = Flask(__name__)
@@ -57,10 +59,15 @@ class Register(Resource):
         if collection.find_one({"Email": new_user['Email']}):
             return "You already have an account", 400
         else:
-            #Create timestamp and update new_user data for db entry
+            #Create timestamp
             ts = datetime.utcnow().isoformat()
-            new_user.update(Timestamp = ts)
-            collection.insert_one(new_user)
+
+            #Create expiration time for entry and update new_user
+            exp = getExpirationTime(hours=2)
+            new_user.update(Timestamp = ts, Expires = exp)
+
+            #Insert new user into temp DB
+            tempCollection.insert_one(new_user)
             return "User added", 200
 
         #TODO email verification
@@ -149,8 +156,6 @@ class Users(Resource):
             return apiClient.internalServerError()
 
         return results
-
-
 
 api.add_resource(Login, '/Login')
 api.add_resource(Register, '/Register')
