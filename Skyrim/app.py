@@ -26,6 +26,16 @@ api = Api(app)
 
 apiClient = PaApi()
 
+def _removeExpiredPendingUsers():
+    ts = datetime.utcnow().isoformat()
+    results = tempCollection.find({"Expires": {"$lt":ts}})
+    for doc in results:
+        if tempCollection.delete_one({"_id": doc['_id']}) != 200:
+            return "Failed to delete pending users", 400
+        else:
+            return "Pending user removed", 200
+    return "All pending users removed", 200
+
 
 class Register(Resource):
     def post(self):
@@ -156,6 +166,8 @@ class Users(Resource):
             return apiClient.internalServerError()
 
         return results
+
+#_removeExpiredPendingUsers()
 
 api.add_resource(Login, '/Login')
 api.add_resource(Register, '/Register')
