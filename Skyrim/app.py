@@ -27,9 +27,15 @@ api = Api(app)
 apiClient = PaApi()
 
 def _removeExpiredPendingUsers():
+
+    #Get current timestamp
     ts = datetime.utcnow().isoformat()
+
+    #Find expired pending user in collection
     results = tempCollection.find({"Expires": {"$lt":ts}})
     for doc in results:
+
+        #Now delete any documents found
         if tempCollection.delete_one({"_id": doc['_id']}) != 200:
             return "Failed to delete pending users", 400
         else:
