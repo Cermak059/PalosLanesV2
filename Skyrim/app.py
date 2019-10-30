@@ -31,16 +31,32 @@ def _removeExpiredPendingUsers():
     #Get current timestamp
     ts = datetime.utcnow().isoformat()
 
-    #Find expired pending user in collection
+    #Find any expired pending users in tempCollection
     results = tempCollection.find({"Expires": {"$lt":ts}})
-    for doc in results:
 
-        #Now delete any documents found
+    #Now delete any docs found
+    for doc in results:
         if tempCollection.delete_one({"_id": doc['_id']}) != 200:
             return "Failed to delete pending users", 400
         else:
             return "Pending user removed", 200
     return "All pending users removed", 200
+
+def _removeExpiredAuthTokens():
+
+    #Get current timestamp
+    ts = datetime.utcnow().isoformat()
+
+    #Find any expired auth tokens in authCollection
+    results = authCollection.find({"Expires": {"$lt":ts}})
+
+    #Now delete any docs found
+    for doc in results:
+        if authCollection.delete_one({"_id": doc['_id']}) != 200:
+            return "Failed to delete expired auth tokens", 400
+        else:
+            return "Expired token removed", 200
+    return "All expired tokens removed", 200
 
 
 class Register(Resource):
@@ -121,10 +137,18 @@ class Login(Resource):
         #Pass generated token to variable
         token = GenerateToken(20)
 
+        #Create timestamp for token
+        ts = datetime.utcnow().isoformat()
+
+        #Get expiration time for token
+        exp = getExpirationTime(minutes=2)
+
         #Create insert data dictionary
         insertData = {}
         insertData['Username'] = check_user['Username']
         insertData['Token'] = token
+        insertData['TimeStamp'] = ts
+        insertData['Expires'] = exp
 
         #Inserting data into authCollection
         authCollection.insert_one(insertData)
@@ -173,6 +197,7 @@ class Users(Resource):
 
         return results
 
+#_removeExpiredAuthTokens()
 #_removeExpiredPendingUsers()
 
 api.add_resource(Login, '/Login')
