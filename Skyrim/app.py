@@ -9,6 +9,7 @@ from marshmallow import ValidationError
 from datetime import datetime
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
+from pautils import SendEmail
 from paapi import PaApi
 from paschema import UserSchema
 from pamongo import Authorization,\
@@ -90,19 +91,21 @@ class Register(Resource):
         #Check if user exists in DB
         if collection.find_one({"Email": new_user['Email']}):
             return "You already have an account", 400
-        else:
-            #Create timestamp
-            ts = datetime.utcnow().isoformat()
 
-            #Create expiration time for entry and update new_user
-            exp = getExpirationTime(hours=2)
-            new_user.update(Timestamp = ts, Expires = exp)
+        #Create timestamp
+        ts = datetime.utcnow().isoformat()
 
-            #Insert new user into temp DB
-            tempCollection.insert_one(new_user)
-            return "User added", 200
+        #Create expiration time for entry and update new_user
+        exp = getExpirationTime(minutes=2)
+        new_user.update(Timestamp = ts, Expires = exp)
 
-        #TODO email verification
+        #Insert new user into temp DB
+        tempCollection.insert_one(new_user)
+
+        #Send email to verify user account
+        SendEmail(new_user['Email'], "Verification", "Please verify your account")
+
+        return "User added and emailed", 200
 
 
 class Login(Resource):
@@ -141,7 +144,7 @@ class Login(Resource):
         ts = datetime.utcnow().isoformat()
 
         #Get expiration time for token
-        exp = getExpirationTime(minutes=2)
+        exp = getExpirationTime(hours=24)
 
         #Create insert data dictionary
         insertData = {}
