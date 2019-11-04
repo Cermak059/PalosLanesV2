@@ -96,11 +96,16 @@ class Register(Resource):
         ts = datetime.utcnow().isoformat()
 
         #Create expiration time for entry and update new_user
-        exp = getExpirationTime(minutes=2)
-        new_user.update(Timestamp = ts, Expires = exp)
+        exp = getExpirationTime(hours=2)
+
+        #Generate tempToken
+        tempToken = GenerateToken(6)
+
+        new_user.update(TempToken = tempToken, Timestamp = ts, Expires = exp)
 
         #Insert new user into temp DB
-        tempCollection.insert_one(new_user)
+        if not tempCollection.insert_one(new_user):
+            return apiClient.internalServerError()
 
         #Send email to verify user account
         SendEmail(new_user['Email'], "Verification", "Please verify your account")
