@@ -22,7 +22,7 @@ class UserSchema(Schema):
           #TODO eliminate capitals in middle of string
 
           #validate format for birthdate date 00/00/0000
-          match = re.search("^(\d{2})\/(\d{2})\/(\d{4})$", new_user["Birthdate"])
+          match = re.search("^(\d{2})[-/]?(\d{2})[-/]?(\d{4})$", new_user["Birthdate"])
           if match:
                newDate = ("{}/{}/{}".format(match.group(1),match.group(2),match.group(3)))
                new_user.update({'Birthdate' : newDate})
