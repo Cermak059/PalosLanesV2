@@ -12,7 +12,8 @@ from pymongo.errors import ConnectionFailure
 from pautils import SendEmail
 from paapi import PaApi
 from paschema import UserSchema
-from paconfig import VERIFY_EMAIL_TEMPLATE
+from paconfig import VERIFY_EMAIL_TEMPLATE,\
+                     SUCCESS_TEMPLATE
 from pamongo import Authorization,\
                     collection,\
                     authCollection,\
@@ -72,7 +73,7 @@ class Register(Resource):
         try:
             data=json.loads(request.data)
         except Exception as e:
-            return "Invalid json", 400
+            return apiClient.badRequest("Invalid json")
 
         #Create new user by loading data from dictionary into UserSchema
         try:
@@ -88,11 +89,11 @@ class Register(Resource):
 
         #Check to see if username is taken
         if collection.find_one({"Username": new_user['Username']}):
-            return "Username already in use", 400
+            return apiClient.badRequest("Username already in use")
 
         #Check if user exists in DB
         if collection.find_one({"Email": new_user['Email']}):
-            return "You already have an account", 400
+            return apiClient.badRequest("You already have an account")
 
         #Create timestamp
         ts = datetime.utcnow().isoformat()
@@ -122,16 +123,16 @@ class VerifyUser(Resource):
 
         #Check if token exists
         if not verificationToken:
-            return "No token", 400
+            return apiClient.badRequest("No token")
 
         #Find user with matching token in temp DB
         tempUser = tempCollection.find_one({"TempToken": verificationToken})
 
         #Handle errors for no user found and expired token
         if not tempUser:
-            return "Token not recognized", 400
+            return apiClient.badRequest("Token not recognized")
         elif TimestampExpired(tempUser['Expires']):
-            return "Token is expired", 400
+            return apiClient.badRequest("Token is expired")
 
         #Delete token from tempUser
         try:
@@ -147,9 +148,11 @@ class VerifyUser(Resource):
         if not tempCollection.delete_one({"TempToken": verificationToken}):
             return apiClient.internalServerError()
 
-        return "Success", 200
-
-        #TODO success page
+        #Return success template
+        with open(SUCCESS_TEMPLATE, 'r') as stream:
+            successTemplate = stream.read()
+        successPage = successTemplate
+        return apiClient.returnHtml(successPage)
 
 
 class Login(Resource):
@@ -161,7 +164,7 @@ class Login(Resource):
         try:
             data = json.loads(request.data)
         except Exception as e:
-            return "Invalid json", 400
+            return apiClient.badRequest("Invalid json")
 
         #Load user login data against schema
         try:
@@ -175,11 +178,11 @@ class Login(Resource):
 
         #Check if no results have been returned
         if not results:
-            return "User not found", 404
+            return apiClient.notFound("Username not found")
 
         #Now check password to verify user and login
         if not VerifyPassword(check_user['Password'], results['Password']):
-            return "Invalid password", 400
+            return apiClient.badRequest("Invalid password")
 
         #Pass generated token to variable
         token = GenerateToken(20)
@@ -198,10 +201,10 @@ class Login(Resource):
         insertData['Expires'] = exp
 
         #Inserting data into authCollection
-        authCollection.insert_one(insertData)
+        if not authCollection.insert_one(insertData):
+            return apiClient.internalServerError()
+
         return token
-
-
 
 class Users(Resource):
     def get(self):
@@ -211,7 +214,7 @@ class Users(Resource):
         try:
             data = json.loads(request.data)
         except Exception as e:
-            return "Invalid json", 400
+            return apiClient.badRequest("Invalid json")
 
         #Load into schema and return 404 if not found
         try:
@@ -234,7 +237,7 @@ class Users(Resource):
 
         #If no results return error
         if not results:
-            return "User not found", 404
+            return apiClient.notFound("User not found")
 
         #Try to delete password and ID keys from dictionary
         try:
