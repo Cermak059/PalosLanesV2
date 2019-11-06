@@ -12,6 +12,7 @@ from pymongo.errors import ConnectionFailure
 from pautils import SendEmail
 from paapi import PaApi
 from paschema import UserSchema
+from paconfig import VERIFY_EMAIL_TEMPLATE
 from pamongo import Authorization,\
                     collection,\
                     authCollection,\
@@ -19,7 +20,8 @@ from pamongo import Authorization,\
 from pacrypto import EncryptPassword,\
                      VerifyPassword,\
                      GenerateToken,\
-                     getExpirationTime
+                     getExpirationTime,\
+                     TimestampExpired
 
 
 app = Flask(__name__)
@@ -108,9 +110,46 @@ class Register(Resource):
             return apiClient.internalServerError()
 
         #Send email to verify user account
-        SendEmail(new_user['Email'], "Verification", "Please verify your account")
+        with open(VERIFY_EMAIL_TEMPLATE, 'r') as stream:
+            emailBodyTemplate = stream.read()
+        emailBody = emailBodyTemplate.format(fname=new_user['Fname'], verify_url="http://192.168.200.173:5000/VerifyUser/{}".format(tempToken))
+        SendEmail(new_user['Email'], "Verification", emailBody)
 
         return "User added and emailed", 200
+
+class VerifyUser(Resource):
+    def get(self, verificationToken=None):
+
+        #Check if token exists
+        if not verificationToken:
+            return "No token", 400
+
+        #Find user with matching token in temp DB
+        tempUser = tempCollection.find_one({"TempToken": verificationToken})
+
+        #Handle errors for no user found and expired token
+        if not tempUser:
+            return "Token not recognized", 400
+        elif TimestampExpired(tempUser['Expires']):
+            return "Token is expired", 400
+
+        #Delete token from tempUser
+        try:
+            del (tempUser['TempToken'])
+        except KeyError:
+            return apiClient.internalServerError()
+
+        #Insert verified user into DB
+        if not collection.insert_one(tempUser):
+            return apiClient.internalServerError()
+
+        #Now delete old temp data from DB
+        if not tempCollection.delete_one({"TempToken": verificationToken}):
+            return apiClient.internalServerError()
+
+        return "Success", 200
+
+        #TODO success page
 
 
 class Login(Resource):
@@ -211,7 +250,8 @@ class Users(Resource):
 api.add_resource(Login, '/Login')
 api.add_resource(Register, '/Register')
 api.add_resource(Users, '/Users')
+api.add_resource(VerifyUser, '/VerifyUser/<verificationToken>')
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host= '0.0.0.0')
