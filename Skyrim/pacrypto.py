@@ -25,3 +25,9 @@ def getExpirationTime(hours=None, minutes=None):
         return (datetime.utcnow() + timedelta(minutes=minutes)).isoformat()
     else:
         return datetime.utcnow().isoformat()
+
+def TimestampExpired(timestamp):
+    if datetime.utcnow().isoformat() > timestamp:
+        return True
+    else:
+        return False
