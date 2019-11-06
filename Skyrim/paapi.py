@@ -4,22 +4,21 @@ from flask import Response
 
 
 class PaApi(object):
-    def __init__(self, mongoClient, logger):
-        self.mongoClient = mongoClient
-        self.logger = logger
 
     #200
-    def success(self):
+    def success(self, text):
         #set status code 200
         response = Response()
         response.status_code = 200
+        response.data = text
         return response
 
     #400
-    def badRequest(self):
+    def badRequest(self, text):
         #set status code 400
         response = Response()
         response.status_code = 400
+        response.data = text
         return response
 
     #401
@@ -29,11 +28,19 @@ class PaApi(object):
         response.status_code = 401
         return response
 
+    #403
+    def forbidden(self):
+        #set status code
+        response = Response()
+        response.status_code = 403
+        return response
+
     #404
-    def notFound(self):
+    def notFound(self, text):
         #set status code
         response = Response()
         response.status_code = 404
+        response.data = text
         return response
 
     #500
@@ -42,4 +49,9 @@ class PaApi(object):
         response = Response()
         response.status_code = 500
         return response
-    
+
+    def returnHtml(self, html):
+        response = Response()
+        response.status_code = 504
+        response.data = html
+        return response
