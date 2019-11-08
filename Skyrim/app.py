@@ -9,6 +9,7 @@ from marshmallow import ValidationError
 from datetime import datetime
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
+from palogger import PaLogger
 from pautils import SendEmail
 from paapi import PaApi
 from paschema import UserSchema
@@ -29,6 +30,7 @@ app = Flask(__name__)
 api = Api(app)
 
 apiClient = PaApi()
+logger = PaLogger()
 
 def _removeExpiredPendingUsers():
 
@@ -41,10 +43,10 @@ def _removeExpiredPendingUsers():
     #Now delete any docs found
     for doc in results:
         if tempCollection.delete_one({"_id": doc['_id']}) != 200:
-            return "Failed to delete pending users", 400
+            logger.info("Failed to cleanup expired tokens")
         else:
-            return "Pending user removed", 200
-    return "All pending users removed", 200
+            logger.info("Cleaned up pending user{}".format(doc['Email']))
+    logger.info("Finished cleaning up pending users")
 
 def _removeExpiredAuthTokens():
 
@@ -57,10 +59,10 @@ def _removeExpiredAuthTokens():
     #Now delete any docs found
     for doc in results:
         if authCollection.delete_one({"_id": doc['_id']}) != 200:
-            return "Failed to delete expired auth tokens", 400
+            logger.error("Failed to cleanup expired tokens")
         else:
-            return "Expired token removed", 200
-    return "All expired tokens removed", 200
+            logger.info("Cleaned up token{}".format(doc['Token']))
+    logger.info("Finished cleaning up expired auth tokens")
 
 
 class Register(Resource):
@@ -108,6 +110,7 @@ class Register(Resource):
 
         #Insert new user into temp DB
         if not tempCollection.insert_one(new_user):
+            logger.error("Falied to create user {} in temp DB".format(new_user['Email']))
             return apiClient.internalServerError()
 
         #Send email to verify user account
@@ -116,7 +119,7 @@ class Register(Resource):
         emailBody = emailBodyTemplate.format(fname=new_user['Fname'], verify_url="http://192.168.200.173:5000/VerifyUser/{}".format(tempToken))
         SendEmail(new_user['Email'], "Verification", emailBody)
 
-        return "User added and emailed", 200
+        return apiClient.Success("Please check email for verification code")
 
 class VerifyUser(Resource):
     def get(self, verificationToken=None):
@@ -138,14 +141,17 @@ class VerifyUser(Resource):
         try:
             del (tempUser['TempToken'])
         except KeyError:
+            logger.error("Failed to delete key TempToken from dic")
             return apiClient.internalServerError()
 
         #Insert verified user into DB
         if not collection.insert_one(tempUser):
+            logger.error("Failed to insert reg user {} into users DB".format(tempUser['Email']))
             return apiClient.internalServerError()
 
         #Now delete old temp data from DB
         if not tempCollection.delete_one({"TempToken": verificationToken}):
+            logger.error("Failed to delete doc with token")
             return apiClient.internalServerError()
 
         #Return success template
@@ -202,6 +208,7 @@ class Login(Resource):
 
         #Inserting data into authCollection
         if not authCollection.insert_one(insertData):
+            logger.error("Failed to insert data into Auth DB")
             return apiClient.internalServerError()
 
         return token
@@ -243,6 +250,7 @@ class Users(Resource):
         try:
             del (results['Password'],results['_id'])
         except KeyError:
+            logger.error("Failed to delete keys in dic")
             return apiClient.internalServerError()
 
         return results
