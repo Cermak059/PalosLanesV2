@@ -1,6 +1,7 @@
 from flask import Flask, request
 from flask_restplus import Api, Resource
 from passlib.hash import sha256_crypt
+import time
 import pprint
 import json
 import re
@@ -64,6 +65,13 @@ def _removeExpiredAuthTokens():
             logger.info("Cleaned up token{}".format(doc['Token']))
     logger.info("Finished cleaning up expired auth tokens")
 
+def _scheduler():
+    while(True):
+        logger.info("Running cleanup scripts")
+        _removeExpiredAuthTokens()
+        _removeExpiredPendingUsers()
+        logger.info("Sleeping for {} seconds before running cleanup again".format(CRON_SLEEP_SECONDS))
+        time.sleep(CRON_SLEEP_SECONDS)
 
 class Register(Resource):
     def post(self):
@@ -116,10 +124,11 @@ class Register(Resource):
         #Send email to verify user account
         with open(VERIFY_EMAIL_TEMPLATE, 'r') as stream:
             emailBodyTemplate = stream.read()
-        emailBody = emailBodyTemplate.format(fname=new_user['Fname'], verify_url="http://192.168.200.173:5000/VerifyUser/{}".format(tempToken))
+        emailBody = emailBodyTemplate.format(fname=new_user['Fname'], verify_url="http://10.0.0.159:5000/VerifyUser/{}".format(tempToken))
         SendEmail(new_user['Email'], "Verification", emailBody)
 
-        return apiClient.Success("Please check email for verification code")
+        logger.info("User {} added to temp Db and emailed verification token".format(new_user['Email']))
+        return apiClient.success("Please check email for verification code")
 
 class VerifyUser(Resource):
     def get(self, verificationToken=None):
@@ -139,7 +148,7 @@ class VerifyUser(Resource):
 
         #Delete token from tempUser
         try:
-            del (tempUser['TempToken'])
+            del (tempUser['TempToken'], tempUser['Expires'])
         except KeyError:
             logger.error("Failed to delete key TempToken from dic")
             return apiClient.internalServerError()
@@ -157,7 +166,10 @@ class VerifyUser(Resource):
         #Return success template
         with open(SUCCESS_TEMPLATE, 'r') as stream:
             successTemplate = stream.read()
+
         successPage = successTemplate
+
+        logger.info("User {} has verified their account".format(tempUser['Email']))
         return apiClient.returnHtml(successPage)
 
 
@@ -255,8 +267,7 @@ class Users(Resource):
 
         return results
 
-#_removeExpiredAuthTokens()
-#_removeExpiredPendingUsers()
+# _scheduler()
 
 api.add_resource(Login, '/Login')
 api.add_resource(Register, '/Register')
