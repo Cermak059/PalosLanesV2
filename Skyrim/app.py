@@ -15,7 +15,8 @@ from pautils import SendEmail
 from paapi import PaApi
 from paschema import UserSchema
 from paconfig import VERIFY_EMAIL_TEMPLATE,\
-                     SUCCESS_TEMPLATE
+                     SUCCESS_TEMPLATE,\
+                     CRON_SLEEP_SECONDS
 from pamongo import Authorization,\
                     collection,\
                     authCollection,\
@@ -26,13 +27,13 @@ from pacrypto import EncryptPassword,\
                      getExpirationTime,\
                      TimestampExpired
 
-
+                
 app = Flask(__name__)
 api = Api(app)
 
 apiClient = PaApi()
 logger = PaLogger()
-
+        
 def _removeExpiredPendingUsers():
 
     #Get current timestamp
@@ -47,7 +48,7 @@ def _removeExpiredPendingUsers():
             logger.info("Failed to cleanup expired tokens")
         else:
             logger.info("Cleaned up pending user{}".format(doc['Email']))
-    logger.info("Finished cleaning up pending users")
+    logger.info("Finished cleaning up pending users") 
 
 def _removeExpiredAuthTokens():
 
@@ -72,25 +73,25 @@ def _scheduler():
         _removeExpiredPendingUsers()
         logger.info("Sleeping for {} seconds before running cleanup again".format(CRON_SLEEP_SECONDS))
         time.sleep(CRON_SLEEP_SECONDS)
-
+   
 class Register(Resource):
     def post(self):
 
         #Load schema
         schema = UserSchema()
-
+        
         #Try to load json data
         try:
             data=json.loads(request.data)
         except Exception as e:
             return apiClient.badRequest("Invalid json")
-
+        
         #Create new user by loading data from dictionary into UserSchema
         try:
             new_user = schema.load(data, partial=("Token",))
         except ValidationError as err:
             return err.messages, 400
-
+        
         #Now validate formatting of user data with validate_Data method
         try:
             UserSchema.validate_Data(new_user)
@@ -100,7 +101,7 @@ class Register(Resource):
         #Check to see if username is taken
         if collection.find_one({"Username": new_user['Username']}):
             return apiClient.badRequest("Username already in use")
-
+        
         #Check if user exists in DB
         if collection.find_one({"Email": new_user['Email']}):
             return apiClient.badRequest("You already have an account")
@@ -113,20 +114,20 @@ class Register(Resource):
 
         #Generate tempToken
         tempToken = GenerateToken(6)
-
+        
         new_user.update(TempToken = tempToken, Timestamp = ts, Expires = exp)
 
         #Insert new user into temp DB
         if not tempCollection.insert_one(new_user):
             logger.error("Falied to create user {} in temp DB".format(new_user['Email']))
             return apiClient.internalServerError()
-
+            
         #Send email to verify user account
         with open(VERIFY_EMAIL_TEMPLATE, 'r') as stream:
             emailBodyTemplate = stream.read()
         emailBody = emailBodyTemplate.format(fname=new_user['Fname'], verify_url="http://10.0.0.159:5000/VerifyUser/{}".format(tempToken))
         SendEmail(new_user['Email'], "Verification", emailBody)
-
+        
         logger.info("User {} added to temp Db and emailed verification token".format(new_user['Email']))
         return apiClient.success("Please check email for verification code")
 
@@ -136,8 +137,8 @@ class VerifyUser(Resource):
         #Check if token exists
         if not verificationToken:
             return apiClient.badRequest("No token")
-
-        #Find user with matching token in temp DB
+        
+        #Find user with matching token in temp DB    
         tempUser = tempCollection.find_one({"TempToken": verificationToken})
 
         #Handle errors for no user found and expired token
@@ -145,33 +146,33 @@ class VerifyUser(Resource):
             return apiClient.badRequest("Token not recognized")
         elif TimestampExpired(tempUser['Expires']):
             return apiClient.badRequest("Token is expired")
-
-        #Delete token from tempUser
+        
+        #Delete token from tempUser 
         try:
             del (tempUser['TempToken'], tempUser['Expires'])
         except KeyError:
             logger.error("Failed to delete key TempToken from dic")
             return apiClient.internalServerError()
-
+        
         #Insert verified user into DB
         if not collection.insert_one(tempUser):
             logger.error("Failed to insert reg user {} into users DB".format(tempUser['Email']))
             return apiClient.internalServerError()
-
+        
         #Now delete old temp data from DB
         if not tempCollection.delete_one({"TempToken": verificationToken}):
             logger.error("Failed to delete doc with token")
             return apiClient.internalServerError()
-
+        
         #Return success template
         with open(SUCCESS_TEMPLATE, 'r') as stream:
             successTemplate = stream.read()
-
+            
         successPage = successTemplate
 
         logger.info("User {} has verified their account".format(tempUser['Email']))
         return apiClient.returnHtml(successPage)
-
+        
 
 class Login(Resource):
     def post(self):
@@ -183,7 +184,7 @@ class Login(Resource):
             data = json.loads(request.data)
         except Exception as e:
             return apiClient.badRequest("Invalid json")
-
+          
         #Load user login data against schema
         try:
             check_user = schema.load(data, partial=("Fname","Lname","Birthdate","Phone","Email","League","Token",))
@@ -193,15 +194,15 @@ class Login(Resource):
         #Find user in database with associated username
         results = collection.find_one({"Username": check_user['Username']})
 
-
+          
         #Check if no results have been returned
         if not results:
             return apiClient.notFound("Username not found")
 
-        #Now check password to verify user and login
+        #Now check password to verify user and login 
         if not VerifyPassword(check_user['Password'], results['Password']):
             return apiClient.badRequest("Invalid password")
-
+            
         #Pass generated token to variable
         token = GenerateToken(20)
 
@@ -223,8 +224,9 @@ class Login(Resource):
             logger.error("Failed to insert data into Auth DB")
             return apiClient.internalServerError()
 
+        
         return token
-
+        
 class Users(Resource):
     def get(self):
 
@@ -234,30 +236,30 @@ class Users(Resource):
             data = json.loads(request.data)
         except Exception as e:
             return apiClient.badRequest("Invalid json")
-
+        
         #Load into schema and return 404 if not found
         try:
             auth = schema.load(data, partial=("Fname","Lname","Birthdate","Phone","Email","League","Username","Password",))
         except ValidationError as err:
             return err.messages, 404
-
+        
         #Pass token to variable
         token = auth['Token']
 
         #Use method to get associated username from given token
         username = Authorization(token)
-
+        
         #If no token found return error 401
         if not username:
             return apiClient.unAuthorized()
-
+            
         #Check for matching username in collection
         results = collection.find_one({"Username": username})
-
+        
         #If no results return error
         if not results:
             return apiClient.notFound("User not found")
-
+      
         #Try to delete password and ID keys from dictionary
         try:
             del (results['Password'],results['_id'])
@@ -267,13 +269,19 @@ class Users(Resource):
 
         return results
 
-# _scheduler()
+class Health(Resource):
+    def get(self):
+        return "Palos Lanes is up and running"
+
+#_scheduler()
 
 api.add_resource(Login, '/Login')
 api.add_resource(Register, '/Register')
 api.add_resource(Users, '/Users')
 api.add_resource(VerifyUser, '/VerifyUser/<verificationToken>')
+api.add_resource(Health, '/Health')
 
 
 if __name__ == '__main__':
     app.run(debug=True, host= '0.0.0.0')
+    
