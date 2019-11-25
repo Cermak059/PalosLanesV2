@@ -130,7 +130,7 @@ public class LoginPage extends AppCompatActivity {
         final String Password = mPassword.getText().toString();
 
         MediaType MEDIA_TYPE = MediaType.parse("application/json");
-        String url = "http://192.168.1.41:5000/Login";
+        String url = "http://3.15.199.174:5000/Login";
 
         OkHttpClient client = new OkHttpClient();
 

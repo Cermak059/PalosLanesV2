@@ -42,7 +42,6 @@
     <string name="NewUser">Username:</string>
     <string name="NewPass">Password:</string>
     <string name="ConfirmPass">Confirm:</string>
-    <string name="PassExample">Bowling1234</string>
     <string name="ConPassExample">Enter Password Again</string>
     <string name="btnSub">Submit</string>
     <string name="NavStandings">League Standings</string>

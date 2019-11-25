@@ -4,26 +4,41 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.telecom.Call;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 
 public class SignUpPage extends AppCompatActivity {
 
-    EditText bDay;
-    EditText fname;
-    EditText lname;
-    EditText email;
-    EditText phone;
-    EditText newUser;
-    EditText newPass;
-    EditText confirm;
-    Button submit;
+    EditText mBday;
+    EditText mFname;
+    EditText mLname;
+    EditText mEmail;
+    EditText mPhone;
+    EditText mUsername;
+    EditText mPassword;
+    EditText mConfirm;
+    CheckBox mCheckBox;
+    Button mSubmit;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,28 +46,32 @@ public class SignUpPage extends AppCompatActivity {
         setContentView(R.layout.activity_sign_up_page);
 
         //Create references to UI
-        final EditText fname = (EditText) findViewById(R.id.editFname);
-        final EditText lname = (EditText) findViewById(R.id.editLname);
-        final EditText email = (EditText) findViewById(R.id.editEmail);
-        final EditText phone = (EditText) findViewById(R.id.editPhone);
-        final EditText bDay = (EditText) findViewById(R.id.editBirthDate);
-        Button submit = (Button) findViewById(R.id.btnSubmit);
+         mFname =  findViewById(R.id.editFname);
+         mLname =  findViewById(R.id.editLname);
+         mEmail =  findViewById(R.id.editEmail);
+         mPhone =  findViewById(R.id.editPhone);
+         mBday =  findViewById(R.id.editBirthDate);
+         mCheckBox = findViewById(R.id.checkYes);
+         mSubmit =  findViewById(R.id.btnSubmit);
+         mUsername = findViewById(R.id.editUsername);
+         mPassword = findViewById(R.id.editPassword);
+         mConfirm = findViewById(R.id.editConfirm);
 
         //Format text for dates with /
-        bDay.addTextChangedListener(new TextWatcher() {
+        mBday.addTextChangedListener(new TextWatcher() {
 
             int beforeLength;
 
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                beforeLength = bDay.length();
+                beforeLength = mBday.length();
             }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int count, int after) {
-                int dates = bDay.getText().toString().length();
+                int dates = mBday.getText().toString().length();
                 if (beforeLength < dates && (dates == 2 || dates == 5)) {
-                    bDay.append("/");
+                    mBday.append("/");
                 }
             }
 
@@ -61,20 +80,20 @@ public class SignUpPage extends AppCompatActivity {
         });
 
         //Format text for phone numbers with -
-        phone.addTextChangedListener(new TextWatcher() {
+        mPhone.addTextChangedListener(new TextWatcher() {
 
             int beforeLength;
 
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                beforeLength = phone.length();
+                beforeLength = mPhone.length();
             }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                int digits = phone.getText().toString().length();
+                int digits = mPhone.getText().toString().length();
                 if (beforeLength < digits && (digits == 3 || digits == 7)) {
-                    phone.append("-");
+                    mPhone.append("-");
                 }
             }
 
@@ -83,74 +102,190 @@ public class SignUpPage extends AppCompatActivity {
         });
 
         //Create onClickListener for button submit
-        submit.setOnClickListener(new View.OnClickListener() {
+        mSubmit.setOnClickListener(new View.OnClickListener() {
             @Override
             //Validate text when submit button is clicked
             public void onClick(View view) {
-                final String FirstName = fname.getText().toString();
-                final String LastName = lname.getText().toString();
-                final String Email = email.getText().toString();
-                final String Phone = phone.getText().toString();
-                final String Birthday = bDay.getText().toString();
+                final String FirstName = mFname.getText().toString();
+                final String LastName = mLname.getText().toString();
+                final String Email = mEmail.getText().toString();
+                final String Phone = mPhone.getText().toString();
+                final String Birthday = mBday.getText().toString();
+                final String Username = mUsername.getText().toString();
+                final String Password = mPassword.getText().toString();
+                final String Confirm = mConfirm.getText().toString();
+
+
                 //validate first name text
                 if (FirstName.length()==0) {
-                    fname.requestFocus();
-                    fname.setError("Field cannot be empty");
+                    mFname.requestFocus();
+                    mFname.setError("Field cannot be empty");
                 }
                 else if (FirstName.length()==1) {
-                    fname.requestFocus();
-                    fname.setError("Must be atleast 2 characters");
+                    mFname.requestFocus();
+                    mFname.setError("Must be atleast 2 characters");
                 }
                 else if (!FirstName.matches("[a-zA-Z]+")) {
-                    fname.requestFocus();
-                    fname.setError("Use only alphabetical characters");
+                    mFname.requestFocus();
+                    mFname.setError("Use only alphabetical characters");
                 }
                 //validate last name text
                 else if (LastName.length()==0) {
-                    lname.requestFocus();
-                    lname.setError("Field cannot be empty");
+                    mLname.requestFocus();
+                    mLname.setError("Field cannot be empty");
                 }
                 else if (LastName.length()==1) {
-                    lname.requestFocus();
-                    lname.setError("Must be atleast 2 characters");
+                    mLname.requestFocus();
+                    mLname.setError("Must be atleast 2 characters");
                 }
                 else if (!LastName.matches("[a-zA-Z]+")) {
-                    lname.requestFocus();
-                    lname.setError("Use only alphabetical characters");
+                    mLname.requestFocus();
+                    mLname.setError("Use only alphabetical characters");
                 }
                 //Validate birthday text
                 else if (Birthday.length()!=10) {
-                    bDay.requestFocus();
-                    bDay.setError("Must us the format 00/00/0000");
+                    mBday.requestFocus();
+                    mBday.setError("Must us the format 00/00/0000");
                 }
                 else if (!Birthday.matches("[0-9/]+")) {
-                    bDay.requestFocus();
-                    bDay.setError("Use only numerical characters");
+                    mBday.requestFocus();
+                    mBday.setError("Use only numerical characters");
                 }
                 //Validate email text
                 else if (Email.length()==0) {
-                    email.requestFocus();
-                    email.setError("Field cannot be empty");
+                    mEmail.requestFocus();
+                    mEmail.setError("Field cannot be empty");
                 }
                 //Validate phone text
                 else if (Phone.length()!=12) {
-                    phone.requestFocus();
-                    phone.setError("Must use format 123-123-1234");
+                    mPhone.requestFocus();
+                    mPhone.setError("Must use format 123-123-1234");
                 }
                 else if (!Phone.matches("[0-9-]+")) {
-                    phone.requestFocus();
-                    phone.setError("Use only numerical values");
+                    mPhone.requestFocus();
+                    mPhone.setError("Use only numerical values");
+                }
+                //Validate Username text
+                else if (Username.length() == 0) {
+                    mUsername.requestFocus();
+                    mUsername.setError("Field cannot be empty");
+                }
+                else if (Username.length() == 1) {
+                    mUsername.requestFocus();
+                    mUsername.setError("Must contain minimum 2 characters");
+                }
+                else if (!Username.matches("[a-zA-Z0-9]+")) {
+                    mUsername.requestFocus();
+                    mUsername.setError("Field cannot use special characters");
+                }
+                //Validate Password text
+                else if (Password.length() == 0) {
+                    mPassword.requestFocus();
+                    mPassword.setError("Field cannot be empty");
+                }
+                else if (Password.length() < 6) {
+                    mPassword.requestFocus();
+                    mPassword.setError("Must contain minimum 6 characters");
+                }
+                //Validate confirm password text
+                else if (Confirm.length() == 0) {
+                    mConfirm.requestFocus();
+                    mConfirm.setError("Field cannot be empty");
+                }
+                else if (Confirm.length() < 6) {
+                    mConfirm.requestFocus();
+                    mConfirm.setError("Must contain minimum of 6 characters");
+                }
+                else if (!Confirm.equals(Password)) {
+                    mConfirm.requestFocus();
+                    mConfirm.setError("Passwords do not match");
                 }
                 else {
-                    Toast.makeText(SignUpPage.this,"Thank you for signing up",Toast.LENGTH_LONG).show();
-                    New();
+                    try {
+                        postRequest();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+    }
+
+    public void postRequest() throws IOException {
+
+        final String FirstName = mFname.getText().toString();
+        final String LastName = mLname.getText().toString();
+        final String Birthday = mBday.getText().toString();
+        final String Email = mEmail.getText().toString();
+        final String Phone = mPhone.getText().toString();
+        final boolean League = mCheckBox.isChecked();
+        final String Username = mUsername.getText().toString();
+        final String Password = mPassword.getText().toString();
+
+
+        MediaType MEDIA_TYPE = MediaType.parse("application/json");
+        String url = "http://3.15.199.174:5000/Register";
+
+        OkHttpClient client = new OkHttpClient();
+
+        JSONObject postdata = new JSONObject();
+        try {
+            postdata.put("Fname", FirstName );
+            postdata.put("Lname", LastName );
+            postdata.put("Birthdate", Birthday);
+            postdata.put("Email", Email);
+            postdata.put("Phone", Phone);
+            postdata.put("League", League);
+            postdata.put("Username", Username);
+            postdata.put("Password", Password);
+        } catch(JSONException e){
+            e.printStackTrace();
+        }
+
+        RequestBody body = RequestBody.create(MEDIA_TYPE, postdata.toString());
+
+        Request request = new Request.Builder()
+                .url(url)
+                .post(body)
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(okhttp3.Call call, IOException e) {
+                String mMessage = e.getMessage().toString();
+                Log.w("failure Response", mMessage);
+                call.cancel();
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                final String mMessage = response.body().string();
+                if (response.isSuccessful()) {
+                    Log.i("", mMessage);
+                    SignUpPage.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(SignUpPage.this, mMessage, Toast.LENGTH_LONG).show();
+                            //Display toast and call method to switch activity
+                            New();
+                        }
+                    });
+                } else {
+                    Log.i("", mMessage);
+                    SignUpPage.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(SignUpPage.this, mMessage, Toast.LENGTH_LONG).show();
+                        }
+                    });
+
                 }
             }
         });
     }
     public void New() {
-        Intent homepage = new Intent(this,MainActivity.class);
-        startActivity(homepage);
+        Intent loginpage = new Intent(this,LoginPage.class);
+        startActivity(loginpage);
     }
 
 }
