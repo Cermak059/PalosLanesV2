@@ -5,13 +5,13 @@ from email.header import Header
 from email.utils import formataddr
 
 def SendEmail(to, subject, body):
-    username = "donotreply"
-    password = "$D0!otBowl!2020"
-    server = "smtp.paloslanes.net"
+    username = "Cermak059"
+    password = "Pieman1993!"
+    server = "smtp.comcast.net"
     port = 587
 
     msg = MIMEMultipart()
-    msg['From'] = "donotreply@paloslanes.net"
+    msg['From'] = "Cermak059@comcast.net"
     msg['To'] = to
     msg['Subject'] = subject
 
@@ -26,3 +26,8 @@ def SendEmail(to, subject, body):
         return e
     finally:
         server.quit()
+
+
+#if __name__== "__main__":
+    #SendEmail("Wicket8688@gmail.com", "verify email", "verify")
+    
