@@ -19,9 +19,7 @@
 																<tbody>
 																	<tr>
 																		<td style="width:150px">
-																			<a href="http://hotimportnights.com" target="_blank">
-																				<img alt="" title="" height="100px" src="{logo_location}" width="150" class="CToWUd">
-																			</a>
+																			
 																		</td>
 																	</tr>
 																</tbody>
@@ -48,8 +46,8 @@
       													<tr>
       														<td style="word-break:break-word;font-size:0px;padding:0px" align="left">
       															<div style="color:#737f8d;font-family:Whitney,Helvetica Neue,Helvetica,Arial,Lucida Grande,sans-serif;font-size:16px;line-height:24px;text-align:left">
-  																	<h2 style="font-family:Whitney,Helvetica Neue,Helvetica,Arial,Lucida Grande,sans-serif;font-weight:500;font-size:20px;color:#4f545c;letter-spacing:0.27px">Hello {user_email},</h2>
-																	<p>Thanks for registering for an account at Hot Import Nights app! Please confirm your email by clicking the button below</p>
+  																	<h2 style="font-family:Whitney,Helvetica Neue,Helvetica,Arial,Lucida Grande,sans-serif;font-weight:500;font-size:20px;color:#4f545c;letter-spacing:0.27px">Hello {fname},</h2>
+																	<p>Thanks for registering for an account with Palos Lanes app! Please confirm your email by clicking the button below</p>
           														</div>
           													</td>
           												</tr>
@@ -76,9 +74,6 @@
           												<tr>
           													<td style="word-break:break-word;font-size:0px;padding:0px" align="left">
           														<div style="color:#02335b;font-family:Whitney,Helvetica Neue,Helvetica,Arial,Lucida Grande,sans-serif;font-size:13px;line-height:16px;text-align:left">
-																	<p>Having trouble? 
-																		<a href="https://hotimportnights.com/contact-hin/" style="font-family:Whitney,Helvetica Neue,Helvetica,Arial,Lucida Grande,sans-serif;color:#7289da" target="_blank">Contact our team</a>
-																	</p>
 																</div>
 															</td>
 														</tr>
@@ -125,7 +120,7 @@
       										<tr>
       											<td style="word-break:break-word;font-size:0px;padding:0px" align="center">
       												<div style="color:#99aab5;font-family:Whitney,Helvetica Neue,Helvetica,Arial,Lucida Grande,sans-serif;font-size:12px;line-height:24px;text-align:center">
-      													Sent by Hot Import Nights 
+      													Sent by Palos Lanes 
     												</div>
     											</td>
     										</tr>
