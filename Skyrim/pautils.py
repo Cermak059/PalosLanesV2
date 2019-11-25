@@ -8,7 +8,7 @@ def SendEmail(to, subject, body):
     username = "donotreply@paloslanes.net"
     password = "$D0!otBowl!2020"
     server = "smtp.paloslanes.net"
-    port = 465
+    port = 587
 
     msg = MIMEMultipart()
     msg['From'] = "donotreply@paloslanes.net"
@@ -19,7 +19,7 @@ def SendEmail(to, subject, body):
     msg.attach(MIMEText(html, 'html'))
 
     try:
-        server = smtplib.SMTP_SSL(server, port)
+        server = smtplib.SMTP(server, port)
         server.login(username, password)
         server.sendmail(username, to, msg.as_string())
     except Exception as e:
