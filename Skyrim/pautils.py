@@ -5,7 +5,7 @@ from email.header import Header
 from email.utils import formataddr
 
 def SendEmail(to, subject, body):
-    username = "donotreply"
+    username = "donotreply@paloslanes.net"
     password = "$D0!otBowl!2020"
     server = "smtp.paloslanes.net"
     port = 587
