@@ -1,0 +1,15 @@
+[Unit]
+Description=PalosLanes
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=root
+ExecStart=/bin/python3 /var/PalosLanesV2/Skyrim/app.py
+
+[Install]
+WantedBy=multi-user.target
+
