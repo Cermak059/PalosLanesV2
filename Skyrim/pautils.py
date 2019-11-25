@@ -8,7 +8,7 @@ def SendEmail(to, subject, body):
     username = "donotreply@paloslanes.net"
     password = "$D0!otBowl!2020"
     server = "smtp.paloslanes.net"
-    port = 587
+    port = 465
 
     msg = MIMEMultipart()
     msg['From'] = "donotreply@paloslanes.net"
