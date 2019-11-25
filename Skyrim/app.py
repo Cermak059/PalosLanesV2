@@ -125,7 +125,7 @@ class Register(Resource):
         #Send email to verify user account
         with open(VERIFY_EMAIL_TEMPLATE, 'r') as stream:
             emailBodyTemplate = stream.read()
-        emailBody = emailBodyTemplate.format(fname=new_user['Fname'], verify_url="http://10.0.0.159:5000/VerifyUser/{}".format(tempToken))
+        emailBody = emailBodyTemplate.format(fname=new_user['Fname'], verify_url="http://3.15.199.174:5000/VerifyUser/{}".format(tempToken))
         SendEmail(new_user['Email'], "Verification", emailBody)
         
         logger.info("User {} added to temp Db and emailed verification token".format(new_user['Email']))
