@@ -299,7 +299,7 @@ class ResetRequest(Resource):
         SendEmail(authUser['Email'], "Reset Account Password", emailBody)
 
 class ResetPassword(Resource):
-    def get(self):
+    def get(self, verificationToken=None):
         return "This was a success"
 
 
@@ -315,7 +315,7 @@ api.add_resource(Users, '/Users')
 api.add_resource(VerifyUser, '/VerifyUser/<verificationToken>')
 api.add_resource(Health, '/Health')
 api.add_resource(ResetRequest, '/ResetRequest')
-api.add_resource(ResetPassword, '/ResetPassword')
+api.add_resource(ResetPassword, '/ResetPassword/<verificationToken>')
 
 
 if __name__ == '__main__':

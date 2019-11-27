@@ -57,7 +57,7 @@
           																<tr>
           																	<td style="border:none;border-radius:3px;color:white;padding:15px 19px" align="center" valign="middle" bgcolor="#02335b">
           																		<a href="{verify_url}" style="text-decoration:none;line-height:100%;background:#02335b;color:white;font-family:Ubuntu,Helvetica,Arial,sans-serif;font-size:15px;font-weight:normal;text-transform:none;margin:0px" target="_blank";>
-            																		<span class="il">Verify </span>Email
+            																		<span class="il">Reset </span>Password
           																		</a>
           																	</td>
           																</tr>
