@@ -290,7 +290,7 @@ class ResetRequest(Resource):
         if not results:
             return apiClient.notFound("Invalid email address")
 
-        temptoken = GenerateToken(6)
+        tempToken = GenerateToken(6)
 
         #Send email to reset user password
         with open(RESET_TEMPLATE, 'r') as stream:
