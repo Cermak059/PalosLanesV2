@@ -16,6 +16,7 @@ from paapi import PaApi
 from paschema import UserSchema
 from paconfig import VERIFY_EMAIL_TEMPLATE,\
                      SUCCESS_TEMPLATE,\
+                     RESET_TEMPLATE,\
                      CRON_SLEEP_SECONDS
 from pamongo import Authorization,\
                     collection,\
@@ -269,6 +270,39 @@ class Users(Resource):
 
         return results
 
+class ResetRequest(Resource):
+    def post(self):
+
+        schema = UserSchema()
+
+        try:
+            data = json.loads(request.data)
+        except Exception as e:
+            return apiClient.badRequest("Invalid json")
+
+        try:
+            authUser = schema.load(data, partial=("Fname","Lname","Birthdate","Phone","Token","League","Username","Password",))
+        except ValidationError as err:
+            return err.messages, 404
+
+        results = collection.find_one({"Email": authUser['Email']})
+
+        if not results:
+            return apiClient.notFound("Invalid email address")
+
+        temptoken = GenerateToken(6)
+
+        #Send email to reset user password
+        with open(RESET_TEMPLATE, 'r') as stream:
+            emailBodyTemplate = stream.read()
+        emailBody = emailBodyTemplate.format(verify_url="http://3.15.199.174:5000/ResetPassword/{}".format(tempToken))
+        SendEmail(authUser['Email'], "Reset Account Password", emailBody)
+
+class ResetPassword(Resource):
+    def get(self):
+        return "This was a success"
+
+
 class Health(Resource):
     def get(self):
         return "Palos Lanes is up and running"
@@ -280,6 +314,8 @@ api.add_resource(Register, '/Register')
 api.add_resource(Users, '/Users')
 api.add_resource(VerifyUser, '/VerifyUser/<verificationToken>')
 api.add_resource(Health, '/Health')
+api.add_resource(ResetRequest, '/ResetRequest')
+api.add_resource(ResetPassword, '/ResetPassword')
 
 
 if __name__ == '__main__':
