@@ -46,7 +46,8 @@
       													<tr>
       														<td style="word-break:break-word;font-size:0px;padding:0px" align="left">
       															<div style="color:#737f8d;font-family:Whitney,Helvetica Neue,Helvetica,Arial,Lucida Grande,sans-serif;font-size:16px;line-height:24px;text-align:left">
-																	<p>Please click the button below to reset your password!</p>
+  																	<h2 style="font-family:Whitney,Helvetica Neue,Helvetica,Arial,Lucida Grande,sans-serif;font-weight:500;font-size:20px;color:#4f545c;letter-spacing:0.27px">Hello {user_email},</h2>
+																	<p>Follow the link below to reset your password</p>
           														</div>
           													</td>
           												</tr>
@@ -56,7 +57,7 @@
           															<tbody>
           																<tr>
           																	<td style="border:none;border-radius:3px;color:white;padding:15px 19px" align="center" valign="middle" bgcolor="#02335b">
-          																		<a href="{verify_url}" style="text-decoration:none;line-height:100%;background:#02335b;color:white;font-family:Ubuntu,Helvetica,Arial,sans-serif;font-size:15px;font-weight:normal;text-transform:none;margin:0px" target="_blank";>
+          																		<a href="{reset_url}" style="text-decoration:none;line-height:100%;background:#02335b;color:white;font-family:Ubuntu,Helvetica,Arial,sans-serif;font-size:15px;font-weight:normal;text-transform:none;margin:0px" target="_blank";>
             																		<span class="il">Reset </span>Password
           																		</a>
           																	</td>
@@ -73,6 +74,7 @@
           												<tr>
           													<td style="word-break:break-word;font-size:0px;padding:0px" align="left">
           														<div style="color:#02335b;font-family:Whitney,Helvetica Neue,Helvetica,Arial,Lucida Grande,sans-serif;font-size:13px;line-height:16px;text-align:left">
+																	
 																</div>
 															</td>
 														</tr>

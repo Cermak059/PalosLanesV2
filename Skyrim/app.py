@@ -16,7 +16,7 @@ from paapi import PaApi
 from paschema import UserSchema
 from paconfig import VERIFY_EMAIL_TEMPLATE,\
                      SUCCESS_TEMPLATE,\
-                     RESET_TEMPLATE,\
+                     FORGOT_TEMPLATE,\
                      CRON_SLEEP_SECONDS
 from pamongo import Authorization,\
                     collection,\
@@ -293,9 +293,9 @@ class ResetRequest(Resource):
         tempToken = GenerateToken(6)
 
         #Send email to reset user password
-        with open(RESET_TEMPLATE, 'r') as stream:
+        with open(FORGOT_TEMPLATE, 'r') as stream:
             emailBodyTemplate = stream.read()
-        emailBody = emailBodyTemplate.format(verify_url="http://3.15.199.174:5000/ResetPassword/{}".format(tempToken))
+        emailBody = emailBodyTemplate.format(reset_url="http://3.15.199.174:5000/ResetPassword/{}".format(tempToken))
         SendEmail(authUser['Email'], "Reset Account Password", emailBody)
 
 class ResetPassword(Resource):
