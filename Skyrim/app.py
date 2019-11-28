@@ -295,7 +295,7 @@ class ResetRequest(Resource):
         #Send email to reset user password
         with open(FORGOT_TEMPLATE, 'r') as stream:
             emailBodyTemplate = stream.read()
-        emailBody = emailBodyTemplate.format(reset_url="http://3.15.199.174:5000/ResetPassword/{}".format(tempToken))
+        emailBody = emailBodyTemplate.format(user_email = authUser['Email'],reset_url="http://3.15.199.174:5000/ResetPassword/{}".format(tempToken))
         SendEmail(authUser['Email'], "Reset Account Password", emailBody)
 
 class ResetPassword(Resource):
