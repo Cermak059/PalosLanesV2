@@ -306,13 +306,17 @@ class ResetPasswordForm(Resource):
         if not verificationToken:
             return apiClient.forbidden()
 
-        #Return success template
+        #Return reset password template
         with open(RESET_TEMPLATE, 'r') as stream:
             resetTemplate = stream.read()
         responseBody = resetTemplate.format(token=verificationToken, change_password_url="http://3.15.199.174:5000/ChangePassword")
         return apiClient.returnHtml(responseBody)
         
+class ChangePassword(Resource):
+    def post(self):
+        return "Success"
 
+        
 class Health(Resource):
     def get(self):
         return "Palos Lanes is up and running"
@@ -326,6 +330,7 @@ api.add_resource(VerifyUser, '/VerifyUser/<verificationToken>')
 api.add_resource(Health, '/Health')
 api.add_resource(ResetRequest, '/ResetRequest')
 api.add_resource(ResetPasswordForm, '/ResetPasswordForm/<verificationToken>')
+api.add_resource(ChangePassword, '/ChangePassword')
 
 
 if __name__ == '__main__':
