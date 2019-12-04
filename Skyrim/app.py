@@ -17,6 +17,7 @@ from paschema import UserSchema
 from paconfig import VERIFY_EMAIL_TEMPLATE,\
                      SUCCESS_TEMPLATE,\
                      FORGOT_TEMPLATE,\
+                     RESET_TEMPLATE,\
                      CRON_SLEEP_SECONDS
 from pamongo import Authorization,\
                     collection,\
@@ -137,7 +138,7 @@ class VerifyUser(Resource):
 
         #Check if token exists
         if not verificationToken:
-            return apiClient.badRequest("No token")
+            return apiClient.forbidden()
         
         #Find user with matching token in temp DB    
         tempUser = tempCollection.find_one({"TempToken": verificationToken})
@@ -288,20 +289,29 @@ class ResetRequest(Resource):
         results = collection.find_one({"Email": authUser['Email']})
 
         if not results:
-            return apiClient.notFound("Invalid email address")
+            return apiClient.notFound("Email not found")
 
         tempToken = GenerateToken(6)
 
         #Send email to reset user password
         with open(FORGOT_TEMPLATE, 'r') as stream:
             emailBodyTemplate = stream.read()
-        emailBody = emailBodyTemplate.format(user_email = authUser['Email'],reset_url="http://3.15.199.174:5000/ResetPassword/{}".format(tempToken))
+        emailBody = emailBodyTemplate.format(user_email=authUser['Email'],reset_url="http://3.15.199.174:5000/ResetPasswordForm/{}".format(tempToken))
         SendEmail(authUser['Email'], "Reset Account Password", emailBody)
 
-class ResetPassword(Resource):
+class ResetPasswordForm(Resource):
     def get(self, verificationToken=None):
-        return "This was a success"
+        
+        #Check if token exists
+        if not verificationToken:
+            return apiClient.forbidden()
 
+        #Return success template
+        with open(RESET_TEMPLATE, 'r') as stream:
+            resetTemplate = stream.read()
+        responseBody = resetTemplate.format(token=verificationToken, change_password_url="http://3.15.199.174:5000/ChangePassword")
+        return apiCLient.returnHTML(responseBody)
+        
 
 class Health(Resource):
     def get(self):
@@ -315,7 +325,7 @@ api.add_resource(Users, '/Users')
 api.add_resource(VerifyUser, '/VerifyUser/<verificationToken>')
 api.add_resource(Health, '/Health')
 api.add_resource(ResetRequest, '/ResetRequest')
-api.add_resource(ResetPassword, '/ResetPassword/<verificationToken>')
+api.add_resource(ResetPassword, '/ResetPasswordForm/<verificationToken>')
 
 
 if __name__ == '__main__':

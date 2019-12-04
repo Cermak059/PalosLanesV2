@@ -1,0 +1,51 @@
+<html>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+	<body style="position: relative: min-height: 100%; top: 0px; background: #2f2f2f; font-family:Arial, Helvetica, sans-serif">
+		<div>
+			
+		</div>
+		<div class="hin-top" align="center">
+		</div>
+		<div style="color: white;" align="center" id="reset">
+			<h1>
+				Reset Your Passwrod
+			</h1>
+			<p align="center">
+					New Password:<br>
+					<input type="password" id="newPassword"><br><br>
+					Confirm Password:<br>
+					<input type="password" id="confirmPassword"><br><br>
+					<button type="button" id="resetButton">Reset</button>
+			</p>
+		</div>
+	</body>
+	<script>
+		$(document).ready(function() {{
+			const Url='{change_password_url}';
+			const Token='{token}'
+			$("#reset :button").click(function () {{
+				var newPassword = $("#newPassword").val();
+				var confirmPassword = $("#confirmPassword").val();
+				if (newPassword == "" || confirmPassword == "") {{
+					alert("Fields cannot be empty");
+				}}
+				if (newPassword != confirmPassword) {{
+					alert("Passwords do not match");
+				}}
+				$.ajax({{
+					url: Url,
+					type: 'POST',
+					dataType: 'json',
+                                        contentType: 'application/json; charset=utf-8',
+					data: JSON.stringify({{"Token": Token, "Password": newPassword}}),
+					success: function(data) {{
+						alert("Password reset successful")
+					}},
+					error: function(xhr, status, reason) {{
+						alert(xhr.responseText)
+					}}
+				}})
+			}});
+		}});
+	</script>
+</html>
