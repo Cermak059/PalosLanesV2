@@ -8,7 +8,7 @@ class PaLogger(object):
 
     def info(self, msg):
         logging.info(msg)
-        return msg
+        print(msg)
         
 
     def error(self, msg):
