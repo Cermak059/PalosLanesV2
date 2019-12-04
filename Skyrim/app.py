@@ -310,7 +310,7 @@ class ResetPasswordForm(Resource):
         with open(RESET_TEMPLATE, 'r') as stream:
             resetTemplate = stream.read()
         responseBody = resetTemplate.format(token=verificationToken, change_password_url="http://3.15.199.174:5000/ChangePassword")
-        return apiCLient.returnHTML(responseBody)
+        return apiClient.returnHTML(responseBody)
         
 
 class Health(Resource):
