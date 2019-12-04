@@ -3,13 +3,13 @@ import logging.handlers
 
 class PaLogger(object):
     def __init__(self):
-        logging.basicConfig(filename = "example.log", level=logging.INFO)
+        logging.basicConfig(filename = "/var/log/palos.log", level=logging.INFO)
 
 
-    
     def info(self, msg):
         logging.info(msg)
-        print(msg)
+        return msg
+        
 
     def error(self, msg):
         logging.error(msg)
