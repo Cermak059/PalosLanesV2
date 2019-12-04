@@ -325,7 +325,7 @@ api.add_resource(Users, '/Users')
 api.add_resource(VerifyUser, '/VerifyUser/<verificationToken>')
 api.add_resource(Health, '/Health')
 api.add_resource(ResetRequest, '/ResetRequest')
-api.add_resource(ResetPassword, '/ResetPasswordForm/<verificationToken>')
+api.add_resource(ResetPasswordForm, '/ResetPasswordForm/<verificationToken>')
 
 
 if __name__ == '__main__':
