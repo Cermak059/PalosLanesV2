@@ -22,7 +22,8 @@ from paconfig import VERIFY_EMAIL_TEMPLATE,\
 from pamongo import Authorization,\
                     collection,\
                     authCollection,\
-                    tempCollection
+                    tempCollection,\
+                    pendingReset
 from pacrypto import EncryptPassword,\
                      VerifyPassword,\
                      GenerateToken,\
@@ -293,6 +294,14 @@ class ResetRequest(Resource):
 
         tempToken = GenerateToken(6)
 
+        tempData = {"Eamil":authUser['Email'],
+                    "Token":tempToken,
+                    "Expire":getExpirationTime(hours=1)}
+
+        if not pendingReset.insert_one(tempData):
+            logger.error("Failed to create temp data")
+            return apiClient.internalServerError()
+                    
         #Send email to reset user password
         with open(FORGOT_TEMPLATE, 'r') as stream:
             emailBodyTemplate = stream.read()

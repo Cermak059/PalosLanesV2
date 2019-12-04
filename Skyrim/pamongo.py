@@ -8,6 +8,7 @@ db = MONGO_DNS["PalosTest"]
 collection = db["Users"]
 authCollection = db["Auth"]
 tempCollection = db["Temp"]
+pendingReset = db["Reset"]
         
 def Authorization(token):
     authResults = authCollection.find_one({"Token": token})
@@ -15,3 +16,7 @@ def Authorization(token):
         return None
 
     return authResults['Username']
+
+
+
+        
