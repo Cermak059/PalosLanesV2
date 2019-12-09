@@ -356,7 +356,7 @@ class ChangePassword(Resource):
         if not results:
             return apiClient.notFound("Email not found")
 
-        if not collection.update({"Password": hashedPassword}, {"Email": results['Email']}):
+        if not collection.update({"Email": results['Email']}, {"$set":{"Password": hashesPassword}}):
             logger.error("Failed to update user {} with new password".format(results['Email']))
             return apiClient.internalServerError()
 
