@@ -295,7 +295,7 @@ class ResetRequest(Resource):
 
         tempToken = GenerateToken(6)
 
-        tempData = {"Eamil":authUser['Email'],
+        tempData = {"Email":authUser['Email'],
                     "Token":tempToken,
                     "Expire":getExpirationTime(hours=1)}
 
