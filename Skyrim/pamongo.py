@@ -17,6 +17,13 @@ def Authorization(token):
 
     return authResults['Username']
 
+def resetAuth(token):
+    authResults = pendingReset.find_one({"Token": token})
+    if not authResults:
+        return None
+
+    return authResults['Email']
+
 
 
         

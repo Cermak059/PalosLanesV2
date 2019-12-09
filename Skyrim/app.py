@@ -20,6 +20,7 @@ from paconfig import VERIFY_EMAIL_TEMPLATE,\
                      RESET_TEMPLATE,\
                      CRON_SLEEP_SECONDS
 from pamongo import Authorization,\
+                    resetAuth,\
                     collection,\
                     authCollection,\
                     tempCollection,\
@@ -323,7 +324,46 @@ class ResetPasswordForm(Resource):
         
 class ChangePassword(Resource):
     def post(self):
-        return "Success"
+
+        schema = UserSchema()
+
+        try:
+            data = json.loads(request.data)
+        except Exception as e:
+            return apiClient.badRequest("Invalid json")
+
+        try:
+            resetUser = schema.load(data, partial=("Fname","Lname","Birthdate","Phone","League","Username","Email",))
+        except ValidationError as err:
+            return err.messages, 400
+
+        match = re.search("[a-zA-Z0-9_]", resetUser["Password"])
+        if match:
+              hashedPassword = EncryptPassword(resetUser["Password"])
+              resetUser.update({'Password' : hashedPassword})
+          else:
+               return apiClient.badRequest("Not a valid password")
+
+        token = resetUser['Token']
+
+        email = resetAuth(token)
+
+        if not email:
+            return apiClient.unAuthorized()
+
+        results = collection.find_one({"Email": email})
+
+        if not results:
+            return apiClient.notFound("Email not found")
+
+        if not collection.update({"Password": hashedPassword}, {"Email": results['Email']}):
+            logger.error("Failed to update user {} with new password".format(results['Email']))
+            return apiClient.internalServerError()
+
+        if not pendingReset.delete_one("Token": token):
+            logger.error("Failed to delete pending reset request")
+            
+        return apiClient.success("Password has been reset")
 
         
 class Health(Resource):
