@@ -341,8 +341,8 @@ class ChangePassword(Resource):
         if match:
               hashedPassword = EncryptPassword(resetUser["Password"])
               resetUser.update({'Password' : hashedPassword})
-          else:
-               return apiClient.badRequest("Not a valid password")
+        else:
+            return apiClient.badRequest("Not a valid password")
 
         token = resetUser['Token']
 
@@ -360,7 +360,7 @@ class ChangePassword(Resource):
             logger.error("Failed to update user {} with new password".format(results['Email']))
             return apiClient.internalServerError()
 
-        if not pendingReset.delete_one("Token": token):
+        if not pendingReset.delete_one({"Token": token}):
             logger.error("Failed to delete pending reset request")
             
         return apiClient.success("Password has been reset")
