@@ -1,5 +1,6 @@
 import os
 
+ADMIN_USERS = "paloslanes.net"
 
 CRON_SLEEP_SECONDS = 86400
 

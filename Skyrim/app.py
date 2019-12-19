@@ -18,7 +18,8 @@ from paconfig import VERIFY_EMAIL_TEMPLATE,\
                      SUCCESS_TEMPLATE,\
                      FORGOT_TEMPLATE,\
                      RESET_TEMPLATE,\
-                     CRON_SLEEP_SECONDS
+                     CRON_SLEEP_SECONDS,\
+                     ADMIN_USERS
 from pamongo import Authorization,\
                     resetAuth,\
                     collection,\
@@ -109,6 +110,12 @@ class Register(Resource):
         #Check if user exists in DB
         if collection.find_one({"Email": new_user['Email']}):
             return apiClient.badRequest("You already have an account")
+        else:
+            if re.search("@{}$".format(ADMIN_USERS), new_user['Email']):
+                logger.info("Setting {} as admin".format(new_user['Email']))
+                new_user['Type'] = "Admin"
+            else:
+                new_user['Type'] = "User"
 
         #Create timestamp
         ts = datetime.utcnow().isoformat()
