@@ -4,29 +4,21 @@ from flask import Response
 
 
 class PaApi(object):
-
-    def _prepareBody(self, body):
-        if not body:
-            return json.dumps({"Results": "null"})
-        if type(body) != str:
-            return json.dumps(body)
-        else:
-            return json.dumps({"Results": body})
     
     #200
-    def success(self, headers, body=None):
+    def success(self, text):
         #set status code 200
         response = Response()
         response.status_code = 200
-        response.data = self._prepareBody(body)
+        response.data = text
         return response
 
     #400
-    def badRequest(self, body):
+    def badRequest(self, text):
         #set status code 400
         response = Response()
         response.status_code = 400
-        response.data = body
+        response.data = text
         return response
 
     #401
@@ -44,11 +36,11 @@ class PaApi(object):
         return response
 
     #404
-    def notFound(self, body):
+    def notFound(self, text):
         #set status code
         response = Response()
         response.status_code = 404
-        response.data = body
+        response.data = text
         return response
 
     #500
