@@ -8,7 +8,7 @@ class PaApi(object):
     def _prepareBody(self, body):
         if not body:
             return json.dumps({"Results": "null"})
-        if type(body) != str and type(body) != unicode:
+        if type(body) != str:
             return json.dumps(body)
         else:
             return json.dumps({"Results": body})
