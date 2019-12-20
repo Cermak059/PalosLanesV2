@@ -4,9 +4,9 @@ from flask import Response
 
 
 class PaApi(object):
-
+    
     #200
-    def success(self, text):
+    def success(self, headers, text):
         #set status code 200
         response = Response()
         response.status_code = 200
@@ -55,3 +55,5 @@ class PaApi(object):
         response.status_code = 504
         response.data = html
         return response
+        
+    
