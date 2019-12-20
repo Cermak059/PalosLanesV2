@@ -14,7 +14,7 @@ class PaApi(object):
             return json.dumps({"Results": body})
     
     #200
-    def success(self, headers, body):
+    def success(self, headers, body=None):
         #set status code 200
         response = Response()
         response.status_code = 200
