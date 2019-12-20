@@ -6,7 +6,7 @@ from flask import Response
 class PaApi(object):
     
     #200
-    def success(self, headers, text):
+    def success(self, text):
         #set status code 200
         response = Response()
         response.status_code = 200

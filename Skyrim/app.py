@@ -376,12 +376,7 @@ class ChangePassword(Resource):
 class Health(Resource):
     def get(self):
         
-        headers = {}
-
-        tempToken = GenerateToken(6)
-
-        retData = {"AuthTest": tempToken} 
-        return apiClient.success(headers, retData)
+         return "Palos Lanes is up and running"
 
 #_scheduler()
 
