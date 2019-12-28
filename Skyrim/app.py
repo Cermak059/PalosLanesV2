@@ -400,7 +400,7 @@ class Authenticate(Resource):
         if not user:
             return apiClient.unAuthorized()
 
-        return apiClient.success()
+        return apiClient.success({})
         
         
 class Health(Resource):
