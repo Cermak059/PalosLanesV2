@@ -372,6 +372,36 @@ class ChangePassword(Resource):
             
         return apiClient.success("Password has been reset")
 
+class Authenticate(Resource):
+    def get(self):
+
+        #Check if auth token is in headers
+        authToken = request.headers.get("X-Auth-Token")
+        if not authToken:
+            return apiClient.unAuthorized()
+
+        #Check if token matches in DB
+        results = authCollection.find_one({"Token": authToken})
+        logger.info("Auth results: {}".format(results))
+        
+        #if no token in DB
+        if not results:
+            return apiClient.unAuthorized()
+        
+        #Check if token has expired
+        if TimestampExpired(results['Expires']):
+            logger.info("Auth token expired")
+            return apiClient.unAuthorized()
+        
+        #Find user in users DB
+        user = collection.find_one({"Username" : results['Username']})
+        
+        #If no user found return 401
+        if not user:
+            return apiClient.unAuthorized()
+
+        return apiClient.success()
+        
         
 class Health(Resource):
     def get(self):
@@ -387,6 +417,7 @@ api.add_resource(Health, '/Health')
 api.add_resource(ResetRequest, '/ResetRequest')
 api.add_resource(ResetPasswordForm, '/ResetPasswordForm/<verificationToken>')
 api.add_resource(ChangePassword, '/ChangePassword')
+api.add_resource(Authenticate, '/Authenticate')
 
 
 if __name__ == '__main__':
