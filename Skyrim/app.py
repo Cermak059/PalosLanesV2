@@ -116,6 +116,7 @@ class Register(Resource):
                 new_user['Type'] = "Admin"
             else:
                 new_user['Type'] = "User"
+                new_user['Points'] = 0
 
         #Create timestamp
         ts = datetime.utcnow().isoformat()
