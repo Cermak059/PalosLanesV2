@@ -250,6 +250,9 @@ class Users(Resource):
 
         #Use method to get associated username from given token
         username = Authorization(authToken)
+
+        if None:
+            return apiClient.unAuthorized()
         
         #If no token found return error 401
         if not username:
