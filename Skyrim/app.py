@@ -242,24 +242,14 @@ class Login(Resource):
 class Users(Resource):
     def get(self):
 
-        schema = UserSchema()
-
-        try:
-            data = json.loads(request.data)
-        except Exception as e:
-            return apiClient.badRequest("Invalid json")
+         #Check if auth token is in headers
+        authToken = request.headers.get("X-Auth-Token")
+        if not authToken:
+            return apiClient.unAuthorized()
         
-        #Load into schema and return 404 if not found
-        try:
-            auth = schema.load(data, partial=("Fname","Lname","Birthdate","Phone","Email","League","Username","Password",))
-        except ValidationError as err:
-            return err.messages, 404
-        
-        #Pass token to variable
-        token = auth['Token']
 
         #Use method to get associated username from given token
-        username = Authorization(token)
+        username = Authorization(authToken)
         
         #If no token found return error 401
         if not username:
