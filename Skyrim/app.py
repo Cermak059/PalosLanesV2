@@ -270,9 +270,7 @@ class Users(Resource):
             logger.error("Failed to delete keys in dic")
             return apiClient.internalServerError()
 
-        user = apiClient._prepareBody(results)
-
-        return apiClient.success({}, user['Results'][0])
+        return results
 
 class ResetRequest(Resource):
     def post(self):
