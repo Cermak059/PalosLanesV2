@@ -265,12 +265,14 @@ class Users(Resource):
       
         #Try to delete password and ID keys from dictionary
         try:
-            del (results['Password'],results['_id'])
+            del (results['Password'],results['_id'],results['Timestamp'])
         except KeyError:
             logger.error("Failed to delete keys in dic")
             return apiClient.internalServerError()
 
-        return results
+        user = apiClient._prepareBody(results)
+
+        return apiClient.success({}, user['Results'][0])
 
 class ResetRequest(Resource):
     def post(self):
