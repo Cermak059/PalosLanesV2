@@ -236,8 +236,9 @@ class Login(Resource):
             logger.error("Failed to insert data into Auth DB")
             return apiClient.internalServerError()
 
+        retData = apiClient._prepareBody({"AuthToken": token, "AccessLevel": results['Type']})
         
-        return apiClient.success(token)
+        return apiClient.success(retData)
         
 class Users(Resource):
     def get(self):
