@@ -6,6 +6,7 @@ import pprint
 import json
 import re
 import pymongo
+import threading
 from marshmallow import ValidationError
 from datetime import datetime
 from pymongo import MongoClient
@@ -70,6 +71,12 @@ def _removeExpiredAuthTokens():
         else:
             logger.info("Cleaned up token{}".format(doc['Token']))
     logger.info("Finished cleaning up expired auth tokens")
+
+def _startCrons():
+    ''' Background workers to cleanup expired tokens in db '''
+    logger.info("Starting background cron workser")
+    t = threading.Thread(target=_scheduler, args=())
+    t.start()
 
 def _scheduler():
     while(True):
@@ -414,5 +421,6 @@ api.add_resource(Authenticate, '/Authenticate')
 
 
 if __name__ == '__main__':
+    _startCrons()
     app.run(debug=True, host= '0.0.0.0')
     
