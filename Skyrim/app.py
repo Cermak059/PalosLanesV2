@@ -216,7 +216,7 @@ class Login(Resource):
           
         #Check if no results have been returned
         if not results:
-            return apiClient.notFound("Username not found")
+            return apiClient.badRequest("Username not found")
 
         #Now check password to verify user and login 
         if not VerifyPassword(check_user['Password'], results['Password']):
