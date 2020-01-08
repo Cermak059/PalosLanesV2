@@ -273,7 +273,7 @@ class Users(Resource):
       
         #Try to delete password and ID keys from dictionary
         try:
-            del (results['Password'],results['Timestamp'],)
+            del (results['Password'],results['_id'],results['Timestamp'])
         except KeyError:
             logger.error("Failed to delete keys in dic")
             return apiClient.internalServerError()
@@ -402,6 +402,7 @@ class Authenticate(Resource):
 
         return apiClient.success({})
 
+        
 class Health(Resource):
     def get(self):
          return "Palos Lanes is up and running"
