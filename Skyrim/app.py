@@ -273,7 +273,7 @@ class Users(Resource):
       
         #Try to delete password and ID keys from dictionary
         try:
-            del (results['Password'],results['_id'],results['Timestamp'])
+            del (results['Password'],results['Timestamp'])
         except KeyError:
             logger.error("Failed to delete keys in dic")
             return apiClient.internalServerError()
@@ -401,6 +401,27 @@ class Authenticate(Resource):
             return apiClient.unAuthorized()
 
         return apiClient.success({})
+
+class Points(Resource):
+    def post(self):
+
+        #Chck if auth token is in headers
+        authToken = request.headers.get("X-Auth-Token")
+        if not authToken:
+            return apiClient.unAuthorized()
+
+        #Check if token matches DB
+        results = authCollection.find_one({"Token" : authToken})
+        logger.info("Auth results: {}".format(results))
+
+        #If no token in DB
+        user = collection.find_one({"Username": results['Username']})
+
+        #if no user found return 401
+        if not user:
+            return apiClient.unAuthorized()
+
+        
         
         
 class Health(Resource):
