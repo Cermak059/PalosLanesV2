@@ -100,7 +100,7 @@ class Register(Resource):
         
         #Create new user by loading data from dictionary into UserSchema
         try:
-            new_user = schema.load(data, partial=("Token",))
+            new_user = schema.load(data, partial=("Token","Points",))
         except ValidationError as err:
             return err.messages, 400
         
