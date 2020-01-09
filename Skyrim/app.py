@@ -206,7 +206,7 @@ class Login(Resource):
           
         #Load user login data against schema
         try:
-            check_user = schema.load(data, partial=("Fname","Lname","Birthdate","Phone","Email","League","Token",))
+            check_user = schema.load(data, partial=("Fname","Lname","Birthdate","Phone","Email","League","Token","Points",))
         except ValidationError as err:
             return err.messages, 400
 
@@ -291,7 +291,7 @@ class ResetRequest(Resource):
             return apiClient.badRequest("Invalid json")
 
         try:
-            authUser = schema.load(data, partial=("Fname","Lname","Birthdate","Phone","Token","League","Username","Password",))
+            authUser = schema.load(data, partial=("Fname","Lname","Birthdate","Phone","Token","League","Username","Password","Points",))
         except ValidationError as err:
             return err.messages, 404
 
@@ -340,7 +340,7 @@ class ChangePassword(Resource):
             return apiClient.badRequest("Invalid json")
 
         try:
-            resetUser = schema.load(data, partial=("Fname","Lname","Birthdate","Phone","League","Username","Email",))
+            resetUser = schema.load(data, partial=("Fname","Lname","Birthdate","Phone","League","Username","Email","Points",))
         except ValidationError as err:
             return err.messages, 400
 
@@ -402,12 +402,85 @@ class Authenticate(Resource):
 
         return apiClient.success({})
 
+class Points(Resource):
+    def post(self):
         
+        '''Check auth token first'''
+
+        #Check if auth token is in headers
+        authToken = request.headers.get("X-Auth-Token")
+        if not authToken:
+            return apiClient.unAuthorized()
+
+        #Check if token matches in DB
+        results = authCollection.find_one({"Token": authToken})
+        logger.info("Auth results: {}".format(results))
+        
+        #if no token in DB
+        if not results:
+            return apiClient.unAuthorized()
+        
+        #Check if token has expired
+        if TimestampExpired(results['Expires']):
+            logger.info("Auth token expired")
+            return apiClient.unAuthorized()
+        
+        #Find user in users DB
+        user = collection.find_one({"Username" : results['Username']})
+        
+        #If no user found return 401
+        if not user:
+            return apiClient.unAuthorized()
+        
+        #Check if auth token comes from admin
+        if user['Type'] != "Admin":
+            return apiClient.unAuthorized()
+
+        '''Now handle body'''
+
+        #Load schema
+        schema = UserSchema()
+        
+        #Load json
+        try:
+            data = json.loads(request.data)
+        except Exception as e:
+            return apiClient.badRequest("Invalid json")
+
+        #Load point request against schema
+        try:
+            checkData = schema.load(data, partial=("Fname","Lname","Birthdate","Phone","League","Token","Password","Username",))
+        except ValidationError as err:
+            return err.messages, 400
+
+        #Find user in user collection
+        findUser = collection.find_one({"Email":checkData['Email']})
+
+        #Otherwise return 400
+        if not findUser:
+            return apiClient.badRequest("User account not found")
+        
+        #Create point variables 
+        newPts = checkData['Points']
+        currentPts = findUser['Points']
+        
+        #Add points  
+        resultPts = currentPts + newPts
+        
+        #Results cannot be less than zero return 400
+        if resultPts < 0:
+            return apiClient.badRequest("User does not have enough points")
+        
+        #Update user collection in DB with new point value
+        if not collection.update({"Email": findUser['Email']}, {"$set":{"Points": resultPts}}):
+            logger.error("Failed to update user {} with new points".format(findUser['Email']))
+            return apiClient.internalServerError()
+
+
 class Health(Resource):
     def get(self):
          return "Palos Lanes is up and running"
 
-#_scheduler()
 
 api.add_resource(Login, '/Login')
 api.add_resource(Register, '/Register')
@@ -418,6 +491,7 @@ api.add_resource(ResetRequest, '/ResetRequest')
 api.add_resource(ResetPasswordForm, '/ResetPasswordForm/<verificationToken>')
 api.add_resource(ChangePassword, '/ChangePassword')
 api.add_resource(Authenticate, '/Authenticate')
+api.add_resource(Points, '/Points')
 
 
 if __name__ == '__main__':
