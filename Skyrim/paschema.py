@@ -8,18 +8,18 @@ class UserSchema(Schema):
      def validate_Data(new_user, **kwargs):
 
          #validate format for first name
-          match = re.search("^[A-Z]{1}[a-z]", new_user["Fname"])
-          if not match:
+          match = re.search("[A-Za-z]", new_user["Fname"])
+          if match:
+               new_user["Fname"].capitalize();
+          else:
                raise ValidationError("Incorrect values for first name")
 
-          #TODO eliminate capitals in middle of string
-
           #validate format for last name
-          match = re.search("^[A-Z]{1}[a-z]", new_user["Lname"])
-          if not match:
+          match = re.search("[A-Za-z]", new_user["Lname"])
+          if match:
+               new_user["Lname"].capitalize();
+          else:
                raise ValidationError("Incorrect values for last name")
-
-          #TODO eliminate capitals in middle of string
 
           #validate format for birthdate date 00/00/0000
           match = re.search("^(\d{2})[-/]?(\d{2})[-/]?(\d{4})$", new_user["Birthdate"])
@@ -52,10 +52,10 @@ class UserSchema(Schema):
           else:
                raise ValidationError("Not a valid password")
 
-
+          
           return new_user
 
-     #Define the schema
+     #Define the schema 
      Fname = fields.String(validate=validate.Length(min=2, max=12),required=True)
      Lname = fields.String(validate=validate.Length(min=2, max=12),required=True)
      Birthdate = fields.String(required=True)
