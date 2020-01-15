@@ -10,14 +10,16 @@ class UserSchema(Schema):
          #validate format for first name
           match = re.search("[A-Za-z]", new_user["Fname"])
           if match:
-               new_user["Fname"].capitalize();
+               capF = new_user["Fname"].capitalize();
+               new_user.update({'Fname' : capF})
           else:
                raise ValidationError("Incorrect values for first name")
 
           #validate format for last name
           match = re.search("[A-Za-z]", new_user["Lname"])
           if match:
-               new_user["Lname"].capitalize();
+              capL = new_user["Lname"].capitalize();
+              new_user.update({'Lname' : capL})
           else:
                raise ValidationError("Incorrect values for last name")
 
