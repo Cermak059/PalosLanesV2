@@ -26,7 +26,8 @@ from pamongo import Authorization,\
                     collection,\
                     authCollection,\
                     tempCollection,\
-                    pendingReset
+                    pendingReset,\
+                    bogoCollection
 from pacrypto import EncryptPassword,\
                      VerifyPassword,\
                      GenerateToken,\
@@ -177,6 +178,15 @@ class VerifyUser(Resource):
         if not collection.insert_one(tempUser):
             logger.error("Failed to insert reg user {} into users DB".format(tempUser['Email']))
             return apiClient.internalServerError()
+
+        if tempUser['Type'] == "User":
+            coupData = {}
+            coupData['Email'] = tempUser['Email']
+            coupData['Used'] = False
+
+            if not bogoCollection.insert_one(coupData):
+                logger.error("Failed to insert user {} into coupon collection".format(tempUser['Email']))
+                return apiClient.internalServerError()
         
         #Now delete old temp data from DB
         if not tempCollection.delete_one({"TempToken": verificationToken}):

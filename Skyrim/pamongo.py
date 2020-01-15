@@ -9,6 +9,7 @@ collection = db["Users"]
 authCollection = db["Auth"]
 tempCollection = db["Temp"]
 pendingReset = db["Reset"]
+bogoCollection = db["BOGO"]
         
 def Authorization(token):
     authResults = authCollection.find_one({"Token": token})
