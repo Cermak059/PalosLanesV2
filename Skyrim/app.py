@@ -581,7 +581,7 @@ class Bogo(Resource):
 
         #Load point request against schema
         try:
-            checkData = schema.load(data, partial=("Fname","Lname","Birthdate","Phone","League","Token","Password","Username",))
+            checkData = schema.load(data, partial=("Fname","Lname","Birthdate","Phone","League","Token","Password","Username","Points",))
         except ValidationError as err:
             return err.messages, 400
 
