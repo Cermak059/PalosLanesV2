@@ -534,7 +534,7 @@ class Bogo(Resource):
         if coupon['Used'] == True:
             return apiClient.badRequest("Your coupon has already been redeemed")
 
-        return apiClient.success()
+        return apiClient.success({})
         
     def post(self):
         '''Check auth token first'''
