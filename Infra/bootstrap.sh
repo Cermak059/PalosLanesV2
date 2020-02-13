@@ -6,6 +6,7 @@ pip3 install pymongo
 pip3 install passlib
 pip3 install flask-restplus
 pip3 install requests
+pip3 install Werkzeug==0.16.0
 
 mkdir -p /var/PalosLanesV2/Skyrim
 cd /var/PalosLanesV2/Skyrim
