@@ -1,3 +1,4 @@
+
 from flask import Flask, request
 from flask_restplus import Api, Resource
 from passlib.hash import sha256_crypt
@@ -27,7 +28,8 @@ from pamongo import Authorization,\
                     authCollection,\
                     tempCollection,\
                     pendingReset,\
-                    bogoCollection
+                    bogoCollection,\
+                    freeCollection
 from pacrypto import EncryptPassword,\
                      VerifyPassword,\
                      GenerateToken,\
@@ -55,7 +57,7 @@ def _removeExpiredPendingUsers():
             logger.info("Failed to cleanup expired tokens")
         else:
             logger.info("Cleaned up pending user{}".format(doc['Email']))
-    logger.info("Finished cleaning up pending users") 
+    logger.info("Finished cleaning up pending users")
 
 def _removeExpiredAuthTokens():
 
@@ -170,7 +172,7 @@ class VerifyUser(Resource):
         if not verificationToken:
             return apiClient.forbidden()
         
-        #Find user with matching token in temp DB    
+        #Find user with matching token in temp DB
         tempUser = tempCollection.find_one({"TempToken": verificationToken})
 
         #Handle errors for no user found and expired token
@@ -179,7 +181,7 @@ class VerifyUser(Resource):
         elif TimestampExpired(tempUser['Expires']):
             return apiClient.badRequest("Token is expired")
         
-        #Delete token from tempUser 
+        #Delete token from tempUser
         try:
             del (tempUser['TempToken'], tempUser['Expires'])
         except KeyError:
@@ -197,6 +199,10 @@ class VerifyUser(Resource):
             coupData['Used'] = False
 
             if not bogoCollection.insert_one(coupData):
+                logger.error("Failed to insert user {} into coupon collection".format(tempUser['Email']))
+                return apiClient.internalServerError()
+                
+            if not freeCollection.insert_one(coupData):
                 logger.error("Failed to insert user {} into coupon collection".format(tempUser['Email']))
                 return apiClient.internalServerError()
         
@@ -240,7 +246,7 @@ class Login(Resource):
         if not results:
             return apiClient.badRequest("Username not found")
 
-        #Now check password to verify user and login 
+        #Now check password to verify user and login
         if not VerifyPassword(check_user['Password'], results['Password']):
             return apiClient.badRequest("Invalid password")
             
@@ -335,7 +341,7 @@ class ResetRequest(Resource):
         #Send email to reset user password
         with open(FORGOT_TEMPLATE, 'r') as stream:
             emailBodyTemplate = stream.read()
-        emailBody = emailBodyTemplate.format(user_email=authUser['Email'],reset_url="http://3.15.199.174:5000/ResetPasswordForm/{}".format(tempToken))
+        emailBody = emailBodyTemplate.format(user_email=authUser['Email'],reset_url="https://chicagolandbowlingservice.com/api/ResetPasswordForm/{}".format(tempToken))
         SendEmail(authUser['Email'], "Reset Account Password", emailBody)
 
 class ResetPasswordForm(Resource):
@@ -348,7 +354,7 @@ class ResetPasswordForm(Resource):
         #Return reset password template
         with open(RESET_TEMPLATE, 'r') as stream:
             resetTemplate = stream.read()
-        responseBody = resetTemplate.format(token=verificationToken, change_password_url="http://3.15.199.174:5000/ChangePassword")
+        responseBody = resetTemplate.format(token=verificationToken, change_password_url="https://chicagolandbowlingservice.com/api/ChangePassword")
         return apiClient.returnHtml(responseBody)
         
 class ChangePassword(Resource):
@@ -482,11 +488,11 @@ class Points(Resource):
         if not findUser:
             return apiClient.badRequest("User account not found")
         
-        #Create point variables 
+        #Create point variables
         newPts = checkData['Points']
         currentPts = findUser['Points']
         
-        #Add points  
+        #Add points
         resultPts = currentPts + newPts
         
         #Results cannot be less than zero return 400
@@ -604,6 +610,43 @@ class Bogo(Resource):
             logger.error("Failed to update coupon after being used")
             return apiClient.internalServerError()
 
+class FreeGame(Resource):
+    def get(self):
+
+        #Check if auth token is in headers
+        authToken = request.headers.get("X-Auth-Token")
+        if not authToken:
+            return apiClient.unAuthorized()
+
+        #Check if token matches in DB
+        results = authCollection.find_one({"Token": authToken})
+        logger.info("Auth results: {}".format(results))
+       
+        #if no token in DB
+        if not results:
+            return apiClient.unAuthorized()
+       
+        #Check if token has expired
+        if TimestampExpired(results['Expires']):
+            logger.info("Auth token expired")
+            return apiClient.unAuthorized()
+
+        #Find user in users DB
+        user = collection.find_one({"Username" : results['Username']})
+       
+        #If no user found return 401
+        if not user:
+            return apiClient.unAuthorized()
+            
+        coupon = freeCollection.find_one({"Email": user['Email']})
+        
+        if not coupon:
+            return apiClient.badRequest("No coupon found")
+            
+        if coupon['Used'] == True:
+            return apiClient.badRequest("Your coupon has already been redeemed")
+            
+        return apiClient.success({})
 
 class Health(Resource):
     def get(self):
@@ -621,9 +664,10 @@ api.add_resource(ChangePassword, '/ChangePassword')
 api.add_resource(Authenticate, '/Authenticate')
 api.add_resource(Points, '/Points')
 api.add_resource(Bogo, '/BuyOneGetOne')
+api.add_resource(FreeGame, '/FreeGameCoupon')
 
 
 if __name__ == '__main__':
     _startCrons()
     app.run(debug=True, host= '0.0.0.0')
-    
+
