@@ -119,7 +119,7 @@ def _checkExpiredCoupons():
         else:
             logger.info("Failed to delete expired coupon {}".format(couponID))
             
-    #logger.info("Finished cleaning up expired coupons")
+    logger.info("Finished cleaning up expired coupons")
 
 def _deleteUsedCoupons(couponID):
     '''Checking for used coupons'''
@@ -152,7 +152,7 @@ def _createCoupons():
 
     logger.info("Re-creating deleted coupons")
 
-    results = cronCollection.find()
+    results = cronCollection.find({})
 
     if not results:
         logger.info("There are no coupons to re-create")
