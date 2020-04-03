@@ -31,7 +31,9 @@ from pamongo import Authorization,\
                     pendingReset,\
                     bogoCollection,\
                     freeCollection,\
-                    usedCollection
+                    usedCollection,\
+                    couponsCollection,\
+                    cronCollection
 from pacrypto import EncryptPassword,\
                      VerifyPassword,\
                      GenerateToken,\
@@ -98,6 +100,10 @@ def _checkExpiredCoupons():
 
     #Find all expired coupons
     results = couponsCollection.find({"Expires": {"$lt":ts}})
+    
+    #If no results print to log
+    if not results:
+        logger.info("No expired coupons to cleanup")
 
     #Loop through result docs
     for doc in results:
@@ -106,13 +112,13 @@ def _checkExpiredCoupons():
         couponID = doc['id']
 
         #Delete all expired coupons found
-        if couponCollection.delete_one({"_id": couponID}) == 200:
+        if couponsCollection.delete_one({"_id": couponID}) == 200:
 
             #If success call method for deleted used coupons and pass coupon ID
             _deleteUsedCoupons(couponID)
     
         else:
-            logger.info("No coupons have expired")
+            logger.info("Failed to delete expired coupon {}".format(couponID))
             
     logger.info("Finished cleaning up expired coupons")
 
@@ -123,6 +129,10 @@ def _deleteUsedCoupons(couponID):
 
     #Find all users that have used coupon ID
     results = usedCollection.find({"UsedCoupons": { $in : couponID}})
+    
+    #If no results print to log
+    if not results:
+        logger.info("No used coupons {} to delete".format(couponID))
 
     #Loop through results
     for doc in results:
@@ -134,6 +144,79 @@ def _deleteUsedCoupons(couponID):
             logger.error("Failed to cleanup used coupons {}".format(couponID))
 
     logger.info("Finished cleaning up used coupons {}".format(couponID))
+    
+    #Now call method to re-create necessary coupons with new expirations
+    _createCoupons()
+    
+def _createCoupons():
+    '''Re-creating coupons that have expired'''
+
+    logger.info("Re-creating deleted coupons")
+
+    results = cronCollection.find()
+
+    if not results:
+        logger.info("There are no coupons to re-create")
+
+    for doc in results:
+
+        couponName = doc['Name']
+
+        if couponName == "BOGO":
+
+            if not couponCollection.find_one({"BOGO": couponName}):
+                logger.info("Re-creating weekly BOGO coupon")
+
+                exp = getExpirationTime(hours=168)
+
+                insertCoupon = {}
+                insertCoupon['_id'] = "001"
+                insertCoupon['Name'] = couponName
+                insertCoupon['Expires'] = exp
+
+                if not couponCollection.insert_one(insertCoupon):
+                    logger.error("Failed to create {} coupon".format(couponName))
+
+            logger.info("Successfully created {} coupon".format(couponName))
+
+        elif couponName == "Thank You":
+
+            if not couponCollection.find_one({"Thank You": couponName}):
+                logger.info("Creating thank you for downloading app coupon")
+
+                exp = getExpirationTime(hours=-1)
+
+                insertCoupon = {}
+                insertCoupon['_id'] = "002"
+                insertCoupon['Name'] = couponName
+                insertCoupon['Expires'] = exp
+
+                if not couponCollection.insert_one(insertCoupon):
+                    logger.error("Failed to create {} coupon".format(couponName))
+
+            logger.info("Successfully created {} coupon".format(couponName))
+
+        elif couponName == "Limited Time Only":
+
+            if not couponCollection.find_one({"Limited Time Only": couponName}):
+                logger.info("Creating thank you for downloading app coupon")
+
+                exp = getExpirationTime(hours=-1)
+
+                insertCoupon = {}
+                insertCoupon['_id'] = "003"
+                insertCoupon['Name'] = couponName
+                insertCoupon['Expires'] = exp
+
+                if not couponCollection.insert_one(insertCoupon):
+                    logger.error("Failed to create {} coupon".format(couponName))
+
+            logger.info("Successfully created {} coupon".format(couponName))
+
+        else:
+            logger.info("Found no coupons with the name {} in cron collection".format(couponName))
+
+    logger.info("Finished re-creating all deleted coupons")
 
 def _startCrons():
     ''' Background workers to cleanup expired tokens in db '''
