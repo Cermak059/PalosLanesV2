@@ -765,7 +765,7 @@ api.add_resource(ChangePassword, '/ChangePassword')
 api.add_resource(Authenticate, '/Authenticate')
 api.add_resource(Points, '/Points')
 api.add_resource(Bogo, '/BuyOneGetOne')
-api.add_resource(FreeGame, '/FreeGameCoupon')
+
 
 
 if __name__ == '__main__':
