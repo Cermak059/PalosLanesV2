@@ -153,6 +153,8 @@ def _createCoupons():
     logger.info("Re-creating deleted coupons")
 
     results = cronCollection.find({})
+    
+    logger.info(results)
 
     if not results:
         logger.info("There are no coupons to re-create")
@@ -211,7 +213,7 @@ def _startCrons():
 def _couponScheduler():
     while(True):
         logger.info("Running coupon cleanups")
-        _checkExpiredCoupons()
+        #_checkExpiredCoupons()
         _createCoupons()
         logger.info("Sleeping for {} seconds before running coupon cleanups again".format(CRON_SLEEP_COUPONS))
         time.sleep(CRON_SLEEP_COUPONS)
