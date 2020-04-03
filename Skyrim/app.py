@@ -20,7 +20,8 @@ from paconfig import VERIFY_EMAIL_TEMPLATE,\
                      SUCCESS_TEMPLATE,\
                      FORGOT_TEMPLATE,\
                      RESET_TEMPLATE,\
-                     CRON_SLEEP_SECONDS,\
+                     CRON_SLEEP_AUTH,\
+                     CRON_SLEEP_COUPONS,\
                      ADMIN_USERS
 from pamongo import Authorization,\
                     resetAuth,\
@@ -28,7 +29,10 @@ from pamongo import Authorization,\
                     authCollection,\
                     tempCollection,\
                     pendingReset,\
-                    bogoCollection
+                    bogoCollection,\
+                    usedCollection,\
+                    couponsCollection,\
+                    cronCollection
 from pacrypto import EncryptPassword,\
                      VerifyPassword,\
                      GenerateToken,\
@@ -74,7 +78,7 @@ def _removeExpiredAuthTokens():
             logger.info("Cleaned up token{}".format(doc['Token']))
     logger.info("Finished cleaning up expired auth tokens")
 
-def _checkWeekDay():
+'''def _checkWeekDay():
     if datetime.today().weekday() == 0:
         logger.info("Today is Monday, updating coupons DB...")
 
@@ -83,22 +87,158 @@ def _checkWeekDay():
             
         logger.info("Successfully reset BOGO coupons")
     else:
-        logger.info("Today is not Monday waiting to cleanup coupons")
+        logger.info("Today is not Monday waiting to cleanup coupons")'''
+
+def _checkExpiredCoupons():
+    '''Checking for expired coupons'''
+    
+    logger.info("Checking for expired coupons")
+
+    #Get current timestamp
+    ts = datetime.utcnow().isoformat()
+
+    #Find all expired coupons
+    results = couponsCollection.find({"Expires": {"$lt":ts}})
+    
+    #If no results print to log
+    if not results:
+        logger.info("No expired coupons to cleanup")
+
+    #Loop through result docs
+    for doc in results:
+
+        #Create variable for coupon ID
+        couponID = doc['id']
+
+        #Delete all expired coupons found
+        if couponsCollection.delete_one({"_id": couponID}) == 200:
+
+            #If success call method for deleted used coupons and pass coupon ID
+            _deleteUsedCoupons(couponID)
+    
+        else:
+            logger.info("Failed to delete expired coupon {}".format(couponID))
+            
+    logger.info("Finished cleaning up expired coupons")
+
+def _deleteUsedCoupons(couponID):
+    '''Checking for used coupons'''
+
+    logger.info("Checking for used coupons")
+
+    #Find all users that have used coupon ID
+    results = usedCollection.find({"UsedCoupons": { "$in" : couponID}})
+    
+    #If no results print to log
+    if not results:
+        logger.info("No used coupons {} to delete".format(couponID))
+
+    #Loop through results
+    for doc in results:
+
+        #Update each colleciton by pulling used coupon ID from UsedCoupons array
+        if not usedCollection.update({"_id": doc['_id']}, { "$pull" : { UsedCoupons: { "$in" : couponID}}}):
+
+            #If not success print to logger
+            logger.error("Failed to cleanup used coupons {}".format(couponID))
+
+    logger.info("Finished cleaning up used coupons {}".format(couponID))
+    
+    #Now call method to re-create necessary coupons with new expirations
+    _createCoupons()
+    
+def _createCoupons():
+    '''Re-creating coupons that have expired'''
+
+    logger.info("Re-creating deleted coupons")
+
+    results = cronCollection.find()
+
+    if not results:
+        logger.info("There are no coupons to re-create")
+
+    for doc in results:
+
+        couponName = doc['Name']
+
+        if couponName == "BOGO":
+
+            if not couponCollection.find_one({"BOGO": couponName}):
+                logger.info("Re-creating weekly BOGO coupon")
+
+                exp = getExpirationTime(hours=168)
+
+                insertCoupon = {}
+                insertCoupon['_id'] = "001"
+                insertCoupon['Name'] = couponName
+                insertCoupon['Expires'] = exp
+
+                if not couponCollection.insert_one(insertCoupon):
+                    logger.error("Failed to create {} coupon".format(couponName))
+
+            logger.info("Successfully created {} coupon".format(couponName))
+
+        elif couponName == "Thank You":
+
+            if not couponCollection.find_one({"Thank You": couponName}):
+                logger.info("Creating thank you for downloading app coupon")
+
+                exp = getExpirationTime(hours=-1)
+
+                insertCoupon = {}
+                insertCoupon['_id'] = "002"
+                insertCoupon['Name'] = couponName
+                insertCoupon['Expires'] = exp
+
+                if not couponCollection.insert_one(insertCoupon):
+                    logger.error("Failed to create {} coupon".format(couponName))
+
+            logger.info("Successfully created {} coupon".format(couponName))
+
+        elif couponName == "Limited Time Only":
+
+            if not couponCollection.find_one({"Limited Time Only": couponName}):
+                logger.info("Creating thank you for downloading app coupon")
+
+                exp = getExpirationTime(hours=-1)
+
+                insertCoupon = {}
+                insertCoupon['_id'] = "003"
+                insertCoupon['Name'] = couponName
+                insertCoupon['Expires'] = exp
+
+                if not couponCollection.insert_one(insertCoupon):
+                    logger.error("Failed to create {} coupon".format(couponName))
+
+            logger.info("Successfully created {} coupon".format(couponName))
+
+        else:
+            logger.info("Found no coupons with the name {} in cron collection".format(couponName))
+
+    logger.info("Finished re-creating all deleted coupons")
 
 def _startCrons():
     ''' Background workers to cleanup expired tokens in db '''
-    logger.info("Starting background cron workser")
-    t = threading.Thread(target=_scheduler, args=())
-    t.start()
+    logger.info("Starting background cron worker")
+    authScheduler = threading.Thread(target=_authScheduler, args=())
+    couponScheduler = threading.Thread(target=_couponScheduler, args=())
+    authScheduler.start()
+    couponScheduler.start()
 
-def _scheduler():
+def _couponScheduler():
     while(True):
-        logger.info("Running cleanup scripts")
+        logger.info("Running coupon cleanups")
+        _checkExpiredCoupons()
+        logger.info("Sleeping for {} seconds before running coupon cleanups again".format(CRON_SLEEP_COUPONS))
+        time.sleep(CRON_SLEEP_COUPONS)
+        
+def _authScheduler():
+    while(True):
+        logger.info("Running auth cleanups")
         _removeExpiredAuthTokens()
         _removeExpiredPendingUsers()
-        _checkWeekDay()
-        logger.info("Sleeping for {} seconds before running cleanup again".format(CRON_SLEEP_SECONDS))
-        time.sleep(CRON_SLEEP_SECONDS)
+        logger.info("Sleeping for {} seconds before running auth cleanup again".format(CRON_SLEEP_AUTH))
+        time.sleep(CRON_SLEEP_AUTH)
    
 class Register(Resource):
     def post(self):
@@ -158,7 +298,7 @@ class Register(Resource):
         #Send email to verify user account
         with open(VERIFY_EMAIL_TEMPLATE, 'r') as stream:
             emailBodyTemplate = stream.read()
-        emailBody = emailBodyTemplate.format(fname=new_user['Fname'], verify_url="https://chicagolandbowlingservice.com/api/VerifyUser/{}".format(tempToken))
+        emailBody = emailBodyTemplate.format(fname=new_user['Fname'], verify_url="http://3.15.199.174:5000/VerifyUser/{}".format(tempToken))
         SendEmail(new_user['Email'], "Verification", emailBody)
         
         logger.info("User {} added to temp Db and emailed verification token".format(new_user['Email']))
@@ -198,6 +338,10 @@ class VerifyUser(Resource):
             coupData['Used'] = False
 
             if not bogoCollection.insert_one(coupData):
+                logger.error("Failed to insert user {} into coupon collection".format(tempUser['Email']))
+                return apiClient.internalServerError()
+                
+            if not freeCollection.insert_one(coupData):
                 logger.error("Failed to insert user {} into coupon collection".format(tempUser['Email']))
                 return apiClient.internalServerError()
         
@@ -605,7 +749,6 @@ class Bogo(Resource):
             logger.error("Failed to update coupon after being used")
             return apiClient.internalServerError()
 
-
 class Health(Resource):
     def get(self):
          return "Palos Lanes is up and running"
@@ -622,10 +765,10 @@ api.add_resource(ChangePassword, '/ChangePassword')
 api.add_resource(Authenticate, '/Authenticate')
 api.add_resource(Points, '/Points')
 api.add_resource(Bogo, '/BuyOneGetOne')
+api.add_resource(FreeGame, '/FreeGameCoupon')
 
 
 if __name__ == '__main__':
     _startCrons()
     app.run(debug=True, host= '0.0.0.0')
-
 

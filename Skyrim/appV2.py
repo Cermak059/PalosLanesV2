@@ -127,7 +127,7 @@ def _deleteUsedCoupons(couponID):
     logger.info("Checking for used coupons")
 
     #Find all users that have used coupon ID
-    results = usedCollection.find({"UsedCoupons": { $in : couponID}})
+    results = usedCollection.find({"UsedCoupons": { "$in" : couponID}})
     
     #If no results print to log
     if not results:
@@ -137,7 +137,7 @@ def _deleteUsedCoupons(couponID):
     for doc in results:
 
         #Update each colleciton by pulling used coupon ID from UsedCoupons array
-        if not usedCollection.update({"_id": doc['_id']}, { $pull: { UsedCoupons: { $in: couponID}}}):
+        if not usedCollection.update({"_id": doc['_id']}, { "$pull" : { UsedCoupons: { "$in" : couponID}}}):
 
             #If not success print to logger
             logger.error("Failed to cleanup used coupons {}".format(couponID))
