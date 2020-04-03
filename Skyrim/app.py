@@ -167,7 +167,7 @@ def _createCoupons():
 
         if couponName == "BOGO":
 
-            if not couponCollection.find_one({"BOGO": couponName}):
+            if couponCollection.find_one({"BOGO": couponName}) != 200:
                 logger.info("Re-creating weekly BOGO coupon")
 
                 insertCoupon = {}
@@ -182,7 +182,7 @@ def _createCoupons():
 
         elif couponName == "Thank You":
 
-            if not couponCollection.find_one({"Thank You": couponName}):
+            if couponCollection.find_one({"Thank You": couponName}) != 200:
                 logger.info("Creating thank you for downloading app coupon")
 
                 insertCoupon = {}
