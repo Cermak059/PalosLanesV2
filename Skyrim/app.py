@@ -211,7 +211,7 @@ def _startCrons():
 def _couponScheduler():
     while(True):
         logger.info("Running coupon cleanups")
-        _checkExpiredCoupons()
+        #_checkExpiredCoupons()
         _createCoupons()
         logger.info("Sleeping for {} seconds before running coupon cleanups again".format(CRON_SLEEP_COUPONS))
         time.sleep(CRON_SLEEP_COUPONS)
