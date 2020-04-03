@@ -120,8 +120,6 @@ def _checkExpiredCoupons():
             logger.info("Failed to delete expired coupon {}".format(couponID))
             
     logger.info("Finished cleaning up expired coupons")
-    
-    _createCoupons()
 
 def _deleteUsedCoupons(couponID):
     '''Checking for used coupons'''
