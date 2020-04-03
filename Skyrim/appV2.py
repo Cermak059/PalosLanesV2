@@ -30,7 +30,6 @@ from pamongo import Authorization,\
                     tempCollection,\
                     pendingReset,\
                     bogoCollection,\
-                    freeCollection,\
                     usedCollection,\
                     couponsCollection,\
                     cronCollection
@@ -749,44 +748,6 @@ class Bogo(Resource):
         if not bogoCollection.update({"Email":findCoupon['Email']}, {"$set":{"Used":True}}):
             logger.error("Failed to update coupon after being used")
             return apiClient.internalServerError()
-
-class FreeGame(Resource):
-    def get(self):
-
-        #Check if auth token is in headers
-        authToken = request.headers.get("X-Auth-Token")
-        if not authToken:
-            return apiClient.unAuthorized()
-
-        #Check if token matches in DB
-        results = authCollection.find_one({"Token": authToken})
-        logger.info("Auth results: {}".format(results))
-       
-        #if no token in DB
-        if not results:
-            return apiClient.unAuthorized()
-       
-        #Check if token has expired
-        if TimestampExpired(results['Expires']):
-            logger.info("Auth token expired")
-            return apiClient.unAuthorized()
-
-        #Find user in users DB
-        user = collection.find_one({"Username" : results['Username']})
-       
-        #If no user found return 401
-        if not user:
-            return apiClient.unAuthorized()
-            
-        coupon = freeCollection.find_one({"Email": user['Email']})
-        
-        if not coupon:
-            return apiClient.badRequest("No coupon found")
-            
-        if coupon['Used'] == True:
-            return apiClient.badRequest("Your coupon has already been redeemed")
-            
-        return apiClient.success({})
 
 class Health(Resource):
     def get(self):
