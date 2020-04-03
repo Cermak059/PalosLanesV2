@@ -28,8 +28,7 @@ from pamongo import Authorization,\
                     authCollection,\
                     tempCollection,\
                     pendingReset,\
-                    bogoCollection,\
-                    freeCollection
+                    bogoCollection
 from pacrypto import EncryptPassword,\
                      VerifyPassword,\
                      GenerateToken,\
@@ -159,7 +158,7 @@ class Register(Resource):
         #Send email to verify user account
         with open(VERIFY_EMAIL_TEMPLATE, 'r') as stream:
             emailBodyTemplate = stream.read()
-        emailBody = emailBodyTemplate.format(fname=new_user['Fname'], verify_url="http://3.15.199.174:5000/VerifyUser/{}".format(tempToken))
+        emailBody = emailBodyTemplate.format(fname=new_user['Fname'], verify_url="https://chicagolandbowlingservice.com/api/VerifyUser/{}".format(tempToken))
         SendEmail(new_user['Email'], "Verification", emailBody)
         
         logger.info("User {} added to temp Db and emailed verification token".format(new_user['Email']))
@@ -199,10 +198,6 @@ class VerifyUser(Resource):
             coupData['Used'] = False
 
             if not bogoCollection.insert_one(coupData):
-                logger.error("Failed to insert user {} into coupon collection".format(tempUser['Email']))
-                return apiClient.internalServerError()
-                
-            if not freeCollection.insert_one(coupData):
                 logger.error("Failed to insert user {} into coupon collection".format(tempUser['Email']))
                 return apiClient.internalServerError()
         
@@ -610,43 +605,6 @@ class Bogo(Resource):
             logger.error("Failed to update coupon after being used")
             return apiClient.internalServerError()
 
-class FreeGame(Resource):
-    def get(self):
-
-        #Check if auth token is in headers
-        authToken = request.headers.get("X-Auth-Token")
-        if not authToken:
-            return apiClient.unAuthorized()
-
-        #Check if token matches in DB
-        results = authCollection.find_one({"Token": authToken})
-        logger.info("Auth results: {}".format(results))
-       
-        #if no token in DB
-        if not results:
-            return apiClient.unAuthorized()
-       
-        #Check if token has expired
-        if TimestampExpired(results['Expires']):
-            logger.info("Auth token expired")
-            return apiClient.unAuthorized()
-
-        #Find user in users DB
-        user = collection.find_one({"Username" : results['Username']})
-       
-        #If no user found return 401
-        if not user:
-            return apiClient.unAuthorized()
-            
-        coupon = freeCollection.find_one({"Email": user['Email']})
-        
-        if not coupon:
-            return apiClient.badRequest("No coupon found")
-            
-        if coupon['Used'] == True:
-            return apiClient.badRequest("Your coupon has already been redeemed")
-            
-        return apiClient.success({})
 
 class Health(Resource):
     def get(self):
@@ -664,10 +622,10 @@ api.add_resource(ChangePassword, '/ChangePassword')
 api.add_resource(Authenticate, '/Authenticate')
 api.add_resource(Points, '/Points')
 api.add_resource(Bogo, '/BuyOneGetOne')
-api.add_resource(FreeGame, '/FreeGameCoupon')
 
 
 if __name__ == '__main__':
     _startCrons()
     app.run(debug=True, host= '0.0.0.0')
+
 
