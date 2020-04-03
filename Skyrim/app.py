@@ -160,18 +160,20 @@ def _createCoupons():
     for doc in results:
 
         couponName = doc['Name']
+        valid = doc['Frequency']
+        location = doc['Location']
+
+        couponExpires = getExpirationTime(hours=valid)
 
         if couponName == "BOGO":
 
             if not couponCollection.find_one({"BOGO": couponName}):
                 logger.info("Re-creating weekly BOGO coupon")
 
-                exp = getExpirationTime(hours=168)
-
                 insertCoupon = {}
-                insertCoupon['_id'] = "001"
                 insertCoupon['Name'] = couponName
-                insertCoupon['Expires'] = exp
+                insertCoupon['Expires'] = couponExpires
+                insertCoupon['Location'] = location
 
                 if not couponCollection.insert_one(insertCoupon):
                     logger.error("Failed to create {} coupon".format(couponName))
@@ -183,35 +185,16 @@ def _createCoupons():
             if not couponCollection.find_one({"Thank You": couponName}):
                 logger.info("Creating thank you for downloading app coupon")
 
-                exp = getExpirationTime(hours=-1)
-
                 insertCoupon = {}
-                insertCoupon['_id'] = "002"
                 insertCoupon['Name'] = couponName
-                insertCoupon['Expires'] = exp
+                insertCoupon['Expires'] = couponExpires
+                insertCoupon['Location'] = location
 
                 if not couponCollection.insert_one(insertCoupon):
                     logger.error("Failed to create {} coupon".format(couponName))
 
             logger.info("Successfully created {} coupon".format(couponName))
-
-        elif couponName == "Limited Time Only":
-
-            if not couponCollection.find_one({"Limited Time Only": couponName}):
-                logger.info("Creating thank you for downloading app coupon")
-
-                exp = getExpirationTime(hours=-1)
-
-                insertCoupon = {}
-                insertCoupon['_id'] = "003"
-                insertCoupon['Name'] = couponName
-                insertCoupon['Expires'] = exp
-
-                if not couponCollection.insert_one(insertCoupon):
-                    logger.error("Failed to create {} coupon".format(couponName))
-
-            logger.info("Successfully created {} coupon".format(couponName))
-
+            
         else:
             logger.info("Found no coupons with the name {} in cron collection".format(couponName))
 
@@ -229,6 +212,7 @@ def _couponScheduler():
     while(True):
         logger.info("Running coupon cleanups")
         _checkExpiredCoupons()
+        _createCoupons()
         logger.info("Sleeping for {} seconds before running coupon cleanups again".format(CRON_SLEEP_COUPONS))
         time.sleep(CRON_SLEEP_COUPONS)
         
