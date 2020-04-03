@@ -120,6 +120,8 @@ def _checkExpiredCoupons():
             logger.info("Failed to delete expired coupon {}".format(couponID))
             
     logger.info("Finished cleaning up expired coupons")
+    
+    _createCoupons()
 
 def _deleteUsedCoupons(couponID):
     '''Checking for used coupons'''
@@ -211,8 +213,7 @@ def _startCrons():
 def _couponScheduler():
     while(True):
         logger.info("Running coupon cleanups")
-        #_checkExpiredCoupons()
-        _createCoupons()
+        _checkExpiredCoupons()
         logger.info("Sleeping for {} seconds before running coupon cleanups again".format(CRON_SLEEP_COUPONS))
         time.sleep(CRON_SLEEP_COUPONS)
         
