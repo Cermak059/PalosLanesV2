@@ -152,7 +152,7 @@ def _createCoupons():
 
     logger.info("Re-creating deleted coupons")
 
-    results = cronCollection.find({})
+    results = cronCollection.find()
     
     logger.info(results)
 
