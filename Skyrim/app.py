@@ -154,7 +154,8 @@ def _createCoupons():
 
     results = cronCollection.find()
     
-    logger.info(results)
+     for doc in results:
+        logger.info(doc)
 
     if not results:
         logger.info("There are no coupons to re-create")
