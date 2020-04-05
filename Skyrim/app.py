@@ -153,9 +153,6 @@ def _createCoupons():
     logger.info("Re-creating deleted coupons")
 
     results = cronCollection.find()
-    
-     for doc in results:
-        logger.info(doc)
 
     if not results:
         logger.info("There are no coupons to re-create")
@@ -170,7 +167,7 @@ def _createCoupons():
 
         if couponName == "BOGO":
 
-            if couponCollection.find_one({"BOGO": couponName}) != 200:
+            if not couponCollection.find_one({"Name": couponName}):
                 logger.info("Re-creating weekly BOGO coupon")
 
                 insertCoupon = {}
@@ -185,7 +182,7 @@ def _createCoupons():
 
         elif couponName == "Thank You":
 
-            if couponCollection.find_one({"Thank You": couponName}) != 200:
+            if not couponCollection.find_one({"Name": couponName}):
                 logger.info("Creating thank you for downloading app coupon")
 
                 insertCoupon = {}
