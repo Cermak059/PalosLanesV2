@@ -8,6 +8,8 @@ import json
 import re
 import pymongo
 import threading
+import traceback
+import sys
 from marshmallow import ValidationError
 from datetime import datetime
 from pymongo import MongoClient
@@ -69,7 +71,7 @@ def _removeExpiredAuthTokens():
 
     #Find any expired auth tokens in authCollection
     results = authCollection.find({"Expires": {"$lt":ts}})
-
+        
     #Now delete any docs found
     for doc in results:
         if authCollection.delete_one({"_id": doc['_id']}) != 200:
@@ -145,19 +147,21 @@ def _deleteUsedCoupons(couponID):
     logger.info("Finished cleaning up used coupons {}".format(couponID))
     
     #Now call method to re-create necessary coupons with new expirations
-    _createCoupons()
+    #_createCoupons()
     
 def _createCoupons():
     '''Re-creating coupons that have expired'''
 
     logger.info("Re-creating deleted coupons")
 
-    results = cronCollection.find()
+    res = cronCollection.find()
 
-    if not results:
-        logger.info("There are no coupons to re-create")
+    #if not res:
+        #logger.info("There are no coupons to re-create")
 
-    for doc in results:
+    for doc in res:
+    
+        logger.info("Searching docs")
 
         couponName = doc['Name']
         valid = doc['Frequency']
@@ -167,7 +171,7 @@ def _createCoupons():
 
         if couponName == "BOGO":
 
-            if not couponCollection.find_one({"Name": couponName}):
+            if not couponsCollection.find_one({"Name": couponName}):
                 logger.info("Re-creating weekly BOGO coupon")
 
                 insertCoupon = {}
@@ -175,14 +179,14 @@ def _createCoupons():
                 insertCoupon['Expires'] = couponExpires
                 insertCoupon['Location'] = location
 
-                if not couponCollection.insert_one(insertCoupon):
+                if not couponsCollection.insert_one(insertCoupon):
                     logger.error("Failed to create {} coupon".format(couponName))
 
             logger.info("Successfully created {} coupon".format(couponName))
 
         elif couponName == "Thank You":
 
-            if not couponCollection.find_one({"Name": couponName}):
+            if not couponsCollection.find_one({"Name": couponName}):
                 logger.info("Creating thank you for downloading app coupon")
 
                 insertCoupon = {}
@@ -190,7 +194,7 @@ def _createCoupons():
                 insertCoupon['Expires'] = couponExpires
                 insertCoupon['Location'] = location
 
-                if not couponCollection.insert_one(insertCoupon):
+                if not couponsCollection.insert_one(insertCoupon):
                     logger.error("Failed to create {} coupon".format(couponName))
 
             logger.info("Successfully created {} coupon".format(couponName))
@@ -211,7 +215,7 @@ def _startCrons():
 def _couponScheduler():
     while(True):
         logger.info("Running coupon cleanups")
-        #_checkExpiredCoupons()
+        _checkExpiredCoupons()
         _createCoupons()
         logger.info("Sleeping for {} seconds before running coupon cleanups again".format(CRON_SLEEP_COUPONS))
         time.sleep(CRON_SLEEP_COUPONS)
