@@ -110,7 +110,7 @@ def _checkExpiredCoupons():
     for doc in results:
 
         #Create variable for coupon ID
-        couponID = doc['id']
+        couponID = doc['_id']
 
         #Delete all expired coupons found
         if couponsCollection.delete_one({"_id": couponID}) == 200:
@@ -147,7 +147,7 @@ def _deleteUsedCoupons(couponID):
     logger.info("Finished cleaning up used coupons {}".format(couponID))
     
     #Now call method to re-create necessary coupons with new expirations
-    #_createCoupons()
+    _createCoupons()
     
 def _createCoupons():
     '''Re-creating coupons that have expired'''
@@ -216,7 +216,6 @@ def _couponScheduler():
     while(True):
         logger.info("Running coupon cleanups")
         _checkExpiredCoupons()
-        _createCoupons()
         logger.info("Sleeping for {} seconds before running coupon cleanups again".format(CRON_SLEEP_COUPONS))
         time.sleep(CRON_SLEEP_COUPONS)
         
