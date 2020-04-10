@@ -722,7 +722,7 @@ class Bogo(Resource):
             return apiClient.badrequest("Coupon data not found")
 
         #Make coupon list variable
-        couponRedeemed = findCoupon['Used']
+        couponsRedeemed = findCoupon['Used']
         
         #Make coupon name variable
         couponName = "BOGO"
@@ -730,8 +730,7 @@ class Bogo(Resource):
         logger.info("Stacktrace")
         
         #If coupon has been used return 400
-        set = set(couponRedeemed)
-        if couponName in set:
+        if couponName in couponsRedeemed:
             return apiClient.badrequest("Sorry... This coupon has already been redeemed")
             
         else:
