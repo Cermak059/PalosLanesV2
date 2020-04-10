@@ -727,7 +727,7 @@ class Bogo(Resource):
         #Make coupon name variable
         couponName = "BOGO"
         
-        logger.info("Stacktrace")
+        logger.info(couponsRedeemed)
         
         #If coupon has been used return 400
         if couponName in couponsRedeemed:
