@@ -730,11 +730,12 @@ class Bogo(Resource):
         #If coupon has been used return 400
         if search(couponRedeemed, couponName):
             return apiClient.badrequest("Sorry... This coupon has already been redeemed")
+            
         else:
-        #Update collection for used coupon
-        if not usedCollection.update({"Email":findCoupon['Email']}, {"$push":{"Used":couponName}}):
-            logger.error("Failed to update coupon after being used")
-            return apiClient.internalServerError()
+            #Update collection for used coupon
+            if not usedCollection.update({"Email":findCoupon['Email']}, {"$push":{"Used":couponName}}):
+                logger.error("Failed to update coupon after being used")
+                return apiClient.internalServerError()
 
 class Health(Resource):
     def get(self):
