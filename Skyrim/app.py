@@ -319,7 +319,7 @@ class VerifyUser(Resource):
         if tempUser['Type'] == "User":
             coupData = {}
             coupData['Email'] = tempUser['Email']
-            coupData['Used'] = {}
+            coupData['Used'] = []
 
             if not usedCollection.insert_one(coupData):
                 logger.error("Failed to insert user {} into coupon collection".format(tempUser['Email']))
@@ -736,7 +736,7 @@ class Bogo(Resource):
         else:
             logger.info("Made it to else statment")
             #Update collection for used coupon
-            if not usedCollection.update({"Email":findCoupon['Email']}, {"$push":{"Used":couponName}}):
+            if not usedCollection.update({"Email":findCoupon['Email']}, {"$push":{"Used": {"$in" :couponName}}}):
                 logger.error("Failed to update coupon after being used")
                 return apiClient.internalServerError()
                 
