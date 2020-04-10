@@ -129,7 +129,7 @@ def _deleteUsedCoupons(couponID):
     logger.info("Checking for used coupons")
 
     #Find all users that have used coupon ID
-    results = usedCollection.find({"UsedCoupons": { "$in" : couponID}})
+    results = usedCollection.find({"Used": { "$in" : couponID}})
     
     #If no results print to log
     if not results:
@@ -715,21 +715,24 @@ class Bogo(Resource):
             return err.messages, 400
 
         #Find coupon in Bogo collection
-        findCoupon = bogoCollection.find_one({"Email":checkData['Email']})
+        findCoupon = usedCollection.find_one({"Email":checkData['Email']})
         
         #If not found return 400
         if not findCoupon:
-            return apiClient.badrequest("Coupon not found")
+            return apiClient.badrequest("Coupon data not found")
 
-        #Make coupon variable
+        #Make coupon list variable
         couponRedeemed = findCoupon['Used']
         
-        #If coupon has been used return 400
-        if couponRedeemed == True:
-            return apiClient.badRequest("You have already redeemed this coupon")
+        #Make coupon name variable
+        couponName = "BOGO"
         
+        #If coupon has been used return 400
+        if search(couponRedeemed, couponName):
+            return apiClient.badrequest("Sorry... This coupon has already been redeemed")
+        else:
         #Update collection for used coupon
-        if not bogoCollection.update({"Email":findCoupon['Email']}, {"$set":{"Used":True}}):
+        if not usedCollection.update({"Email":findCoupon['Email']}, {"$push":{"Used":couponName}}):
             logger.error("Failed to update coupon after being used")
             return apiClient.internalServerError()
 
