@@ -732,6 +732,7 @@ class Bogo(Resource):
             return apiClient.badrequest("Sorry... This coupon has already been redeemed")
             
         else:
+            logger.info("Made it to else statment")
             #Update collection for used coupon
             if not usedCollection.update({"Email":findCoupon['Email']}, {"$push":{"Used":couponName}}):
                 logger.error("Failed to update coupon after being used")
