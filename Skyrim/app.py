@@ -111,15 +111,15 @@ def _checkExpiredCoupons():
 
         #Create variable for coupon ID
         couponID = doc['_id']
+        couponName = doc['Name']
 
         #Delete all expired coupons found
-        if couponsCollection.delete_one({"_id": couponID}) == 200:
-
-            #If success call method for deleted used coupons and pass coupon ID
-            _deleteUsedCoupons(couponID)
-    
-        else:
-            logger.info("Failed to delete expired coupon {}".format(couponID))
+        if not couponsCollection.delete_one({"_id": couponID}):
+        
+            logger.info("Failed to delete expired coupon {}".format(couponName))
+        
+        #If success call method for deleted used coupons and pass coupon ID
+        _deleteUsedCoupons(couponID)
             
     logger.info("Finished cleaning up expired coupons")
 
@@ -156,9 +156,6 @@ def _createCoupons():
 
     res = cronCollection.find()
 
-    #if not res:
-        #logger.info("There are no coupons to re-create")
-
     for doc in res:
     
         logger.info("Searching docs")
@@ -182,7 +179,7 @@ def _createCoupons():
                 if not couponsCollection.insert_one(insertCoupon):
                     logger.error("Failed to create {} coupon".format(couponName))
 
-            logger.info("Successfully created {} coupon".format(couponName))
+                logger.info("Successfully created {} coupon".format(couponName))
 
         elif couponName == "Thank You":
 
@@ -197,7 +194,7 @@ def _createCoupons():
                 if not couponsCollection.insert_one(insertCoupon):
                     logger.error("Failed to create {} coupon".format(couponName))
 
-            logger.info("Successfully created {} coupon".format(couponName))
+                logger.info("Successfully created {} coupon".format(couponName))
             
         else:
             logger.info("Found no coupons with the name {} in cron collection".format(couponName))
@@ -322,15 +319,15 @@ class VerifyUser(Resource):
         if tempUser['Type'] == "User":
             coupData = {}
             coupData['Email'] = tempUser['Email']
-            coupData['Used'] = False
+            coupData['Used'] = [{}]
 
-            if not bogoCollection.insert_one(coupData):
+            if not usedCollection.insert_one(coupData):
                 logger.error("Failed to insert user {} into coupon collection".format(tempUser['Email']))
                 return apiClient.internalServerError()
                 
-            if not freeCollection.insert_one(coupData):
+            '''if not freeCollection.insert_one(coupData):
                 logger.error("Failed to insert user {} into coupon collection".format(tempUser['Email']))
-                return apiClient.internalServerError()
+                return apiClient.internalServerError()'''
         
         #Now delete old temp data from DB
         if not tempCollection.delete_one({"TempToken": verificationToken}):
