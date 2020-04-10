@@ -727,6 +727,7 @@ class Bogo(Resource):
         #Make coupon name variable
         couponName = "BOGO"
         
+        logger.info("Stacktrace")
         #If coupon has been used return 400
         if search(couponRedeemed, couponName):
             return apiClient.badrequest("Sorry... This coupon has already been redeemed")
