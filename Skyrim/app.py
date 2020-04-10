@@ -319,7 +319,7 @@ class VerifyUser(Resource):
         if tempUser['Type'] == "User":
             coupData = {}
             coupData['Email'] = tempUser['Email']
-            coupData['Used'] = [{}]
+            coupData['Used'] = {}
 
             if not usedCollection.insert_one(coupData):
                 logger.error("Failed to insert user {} into coupon collection".format(tempUser['Email']))
