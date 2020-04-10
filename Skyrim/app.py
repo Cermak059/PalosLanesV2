@@ -736,6 +736,8 @@ class Bogo(Resource):
             if not usedCollection.update({"Email":findCoupon['Email']}, {"$push":{"Used":couponName}}):
                 logger.error("Failed to update coupon after being used")
                 return apiClient.internalServerError()
+                
+            return apiClient.success({})
 
 class Health(Resource):
     def get(self):
