@@ -8,8 +8,6 @@ import json
 import re
 import pymongo
 import threading
-import traceback
-import sys
 from marshmallow import ValidationError
 from datetime import datetime
 from pymongo import MongoClient
@@ -119,32 +117,32 @@ def _checkExpiredCoupons():
             logger.info("Failed to delete expired coupon {}".format(couponName))
         
         #If success call method for deleted used coupons and pass coupon ID
-        _deleteUsedCoupons(couponID)
+        _deleteUsedCoupons(couponName)
             
     logger.info("Finished cleaning up expired coupons")
 
-def _deleteUsedCoupons(couponID):
+def _deleteUsedCoupons(couponName):
     '''Checking for used coupons'''
 
     logger.info("Checking for used coupons")
 
     #Find all users that have used coupon ID
-    results = usedCollection.find({"Used": { "$in" : couponID}})
+    results = usedCollection.find({"Used": { "$in" : couponName}})
     
     #If no results print to log
     if not results:
-        logger.info("No used coupons {} to delete".format(couponID))
+        logger.info("No used coupons {} to delete".format(couponName))
 
     #Loop through results
     for doc in results:
 
-        #Update each colleciton by pulling used coupon ID from UsedCoupons array
-        if not usedCollection.update({"_id": doc['_id']}, { "$pull" : { UsedCoupons: { "$in" : couponID}}}):
+        #Update each collection by pulling used coupon ID from UsedCoupons array
+        if not usedCollection.update({"_id": doc['_id']}, { "$pull" : { "Used": { "$in" : couponName}}}):
 
             #If not success print to logger
-            logger.error("Failed to cleanup used coupons {}".format(couponID))
+            logger.error("Failed to cleanup used coupons {}".format(couponName))
 
-    logger.info("Finished cleaning up used coupons {}".format(couponID))
+    logger.info("Finished cleaning up used coupons {}".format(couponName))
     
     #Now call method to re-create necessary coupons with new expirations
     _createCoupons()
@@ -188,7 +186,7 @@ def _createCoupons():
 
                 insertCoupon = {}
                 insertCoupon['Name'] = couponName
-                insertCoupon['Expires'] = couponExpires
+                insertCoupon['Expires'] = -1
                 insertCoupon['Location'] = location
 
                 if not couponsCollection.insert_one(insertCoupon):
@@ -727,7 +725,81 @@ class Bogo(Resource):
         #Make coupon name variable
         couponName = "BOGO"
         
-        logger.info(couponsRedeemed)
+        #If coupon has been used return 400
+        if couponName in couponsRedeemed:
+            return apiClient.badRequest("Sorry... This coupon has already been redeemed")
+            
+        else:
+            logger.info("Made it to else statment")
+            #Update collection for used coupon
+            if not usedCollection.update({"Email":findCoupon['Email']}, {"$push": {"Used": couponName}}):
+                logger.error("Failed to update coupon after being used")
+                return apiClient.internalServerError()
+                
+            return apiClient.success({})
+            
+class FreeGame(Resource):
+    def post(self):
+        '''Check auth token first'''
+
+        #Check if auth token is in headers
+        authToken = request.headers.get("X-Auth-Token")
+        if not authToken:
+            return apiClient.unAuthorized()
+
+        #Check if token matches in DB
+        results = authCollection.find_one({"Token": authToken})
+        logger.info("Auth results: {}".format(results))
+        
+        #if no token in DB
+        if not results:
+            return apiClient.unAuthorized()
+        
+        #Check if token has expired
+        if TimestampExpired(results['Expires']):
+            logger.info("Auth token expired")
+            return apiClient.unAuthorized()
+
+        #Find user in users DB
+        user = collection.find_one({"Username" : results['Username']})
+        
+        #If no user found return 401
+        if not user:
+            return apiClient.unAuthorized()
+        
+        #Check if auth token comes from admin
+        if user['Type'] != "Admin":
+            return apiClient.unAuthorized()
+
+        '''Now handle body'''
+
+        #Load schema
+        schema = UserSchema()
+        
+        #Load json
+        try:
+            data = json.loads(request.data)
+        except Exception as e:
+            return apiClient.badRequest("Invalid json")
+
+        #Load point request against schema
+        try:
+            checkData = schema.load(data, partial=("Fname","Lname","Birthdate","Phone","League","Token","Password","Username","Points",))
+        except ValidationError as err:
+            return err.messages, 400
+
+        #Find coupon in Bogo collection
+        findCoupon = usedCollection.find_one({"Email":checkData['Email']})
+        
+        #If not found return 400
+        if not findCoupon:
+            return apiClient.badRequest("Coupon data not found")
+
+        #Make coupon list variable
+        couponsRedeemed = findCoupon['Used']
+        
+        #Make coupon name variable
+        couponName = "Thank You"
         
         #If coupon has been used return 400
         if couponName in couponsRedeemed:
@@ -741,6 +813,46 @@ class Bogo(Resource):
                 return apiClient.internalServerError()
                 
             return apiClient.success({})
+            
+
+class checkAllCoupons(Resource):
+    def get(self):
+
+        #Check if auth token is in headers
+        authToken = request.headers.get("X-Auth-Token")
+        if not authToken:
+           return apiClient.unAuthorized()
+
+        #Check if token matches in DB
+        results = authCollection.find_one({"Token": authToken})
+        logger.info("Auth results: {}".format(results))
+
+        #if no token in DB
+        if not results:
+           return apiClient.unAuthorized()
+
+        #Check if token has expired
+        if TimestampExpired(results['Expires']):
+           logger.info("Auth token expired")
+           return apiClient.unAuthorized()
+
+        #Find user in users DB
+        user = collection.find_one({"Username" : results['Username']})
+
+        #If no user found return 401
+        if not user:
+           return apiClient.unAuthorized()
+
+        coupons = usedCollection.find_one({"Email":user['Email']})
+
+        if not coupons:
+           return apiClient.badRequest("No coupons found")
+           
+        usedList = coupons['Used']
+        
+        retData = apiClient._prepareBody(usedList)
+           
+        return apiClient.success(retData)
 
 class Health(Resource):
     def get(self):
@@ -758,6 +870,8 @@ api.add_resource(ChangePassword, '/ChangePassword')
 api.add_resource(Authenticate, '/Authenticate')
 api.add_resource(Points, '/Points')
 api.add_resource(Bogo, '/BuyOneGetOne')
+api.add_resource(FreeGame, '/OneFreeGame')
+api.add_resource(CheckAllCoupons, '/CheckAllCoupons')
 
 
 
