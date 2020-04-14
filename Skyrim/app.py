@@ -815,7 +815,7 @@ class FreeGame(Resource):
             return apiClient.success({})
             
 
-class checkAllCoupons(Resource):
+class CheckAllCoupons(Resource):
     def get(self):
 
         #Check if auth token is in headers
