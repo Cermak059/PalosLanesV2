@@ -127,7 +127,7 @@ def _deleteUsedCoupons(couponName):
     logger.info("Checking for used coupons")
 
     #Find all users that have used coupon ID
-    results = usedCollection.find({"Used": { "$in" : couponName}})
+    results = usedCollection.find({"Used":couponName})
     
     #If no results print to log
     if not results:
@@ -137,7 +137,7 @@ def _deleteUsedCoupons(couponName):
     for doc in results:
 
         #Update each collection by pulling used coupon ID from UsedCoupons array
-        if not usedCollection.update({"_id": doc['_id']}, { "$pull" : { "Used": { "$in" : couponName}}}):
+        if not usedCollection.update_one({"_id": doc['_id']}, { "$pull" : { "Used": couponName}}):
 
             #If not success print to logger
             logger.error("Failed to cleanup used coupons {}".format(couponName))
@@ -155,8 +155,6 @@ def _createCoupons():
     res = cronCollection.find()
 
     for doc in res:
-    
-        logger.info("Searching docs")
 
         couponName = doc['Name']
         valid = doc['Frequency']
