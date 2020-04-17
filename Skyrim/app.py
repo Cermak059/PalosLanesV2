@@ -850,7 +850,7 @@ class CheckAllCoupons(Resource):
         
         retData = apiClient._prepareBody(usedList)
         
-        print(type(retData))
+        logger.info(type(retData))
            
         return apiClient.success(retData)
 
