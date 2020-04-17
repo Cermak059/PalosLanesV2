@@ -848,9 +848,9 @@ class CheckAllCoupons(Resource):
            
         usedList = coupons['Used']
         
-        logger.info(type(usedList))
+        retData = apiClient._prepareBody(usedList)
            
-        return apiClient.success(usedList)
+        return apiClient.success(retData)
 
 class Health(Resource):
     def get(self):
