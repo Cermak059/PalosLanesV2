@@ -849,6 +849,8 @@ class CheckAllCoupons(Resource):
         usedList = coupons['Used']
         
         retData = apiClient._prepareBody(usedList)
+        
+        logger.info(type(retData))
            
         return apiClient.success(retData)
 
