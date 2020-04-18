@@ -425,7 +425,7 @@ class Users(Resource):
             logger.error("Failed to delete keys in dic")
             return apiClient.internalServerError()
 
-        logger.info(Type(results))
+        logger.info(type(results))
         return results
 
 class ResetRequest(Resource):
