@@ -852,7 +852,7 @@ class CheckAllCoupons(Resource):
             logger.error("Failed to delete keys in dic")
             return apiClient.internalServerError()
            
-        return apiClient.success(coupons)
+        return coupons
 
 class Health(Resource):
     def get(self):
