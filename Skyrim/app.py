@@ -425,7 +425,6 @@ class Users(Resource):
             logger.error("Failed to delete keys in dic")
             return apiClient.internalServerError()
 
-        logger.info(type(results))
         return results
 
 class ResetRequest(Resource):
@@ -847,13 +846,13 @@ class CheckAllCoupons(Resource):
         if not coupons:
            return apiClient.badRequest("No coupons found")
            
-        usedList = coupons['Used']
-        
-        retData = apiClient._prepareBody(usedList)
-        
-        logger.info(type(retData))
+       try:
+           del (coupons['Email'],coupons['_id'])
+       except KeyError:
+           logger.error("Failed to delete keys in dic")
+           return apiClient.internalServerError()
            
-        return apiClient.success({retData})
+        return apiClient.success(coupons)
 
 class Health(Resource):
     def get(self):
