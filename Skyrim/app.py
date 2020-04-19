@@ -853,7 +853,7 @@ class CheckAllCoupons(Resource):
         
         logger.info(type(retData))
            
-        return apiClient.success(retData)
+        return apiClient.success({retData})
 
 class Health(Resource):
     def get(self):
