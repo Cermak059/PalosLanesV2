@@ -844,13 +844,13 @@ class CheckAllCoupons(Resource):
         coupons = usedCollection.find_one({"Email":user['Email']})
 
         if not coupons:
-           return apiClient.badRequest("No coupons found")
+            return apiClient.badRequest("No coupons found")
            
-       try:
-           del (coupons['Email'],coupons['_id'])
-       except KeyError:
-           logger.error("Failed to delete keys in dic")
-           return apiClient.internalServerError()
+        try:
+            del (coupons['Email'],coupons['_id'])
+        except KeyError:
+            logger.error("Failed to delete keys in dic")
+            return apiClient.internalServerError()
            
         return apiClient.success(coupons)
 
