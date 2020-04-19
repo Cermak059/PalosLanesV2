@@ -846,11 +846,11 @@ class CheckAllCoupons(Resource):
         if not coupons:
             return apiClient.badRequest("No coupons found")
            
-       usedList = coupons['Used']
+        usedList = coupons['Used']
        
-       retData = apiClient._prepareBody({usedList})
+        retData = apiClient._prepareBody({usedList})
        
-       return apiClient.success(retData)
+        return apiClient.success(retData)
 
 class Health(Resource):
     def get(self):
