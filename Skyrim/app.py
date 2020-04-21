@@ -847,10 +847,10 @@ class CheckAllCoupons(Resource):
             return apiClient.badRequest("No coupons found")
            
         usedList = coupons['Used']
-        
-        logger.info(usedList)
        
         retData = apiClient._prepareBody(usedList)
+        
+        logger.info(type(retData))
        
         return apiClient.success(retData)
 
