@@ -846,13 +846,14 @@ class CheckAllCoupons(Resource):
         if not coupons:
             return apiClient.badRequest("No coupons found")
            
-        usedList = coupons['Used']
+        #Try to delete password and ID keys from dictionary
+        try:
+            del (coupons['Email'],coupons['_id'])
+        except KeyError:
+            logger.error("Failed to delete keys in dic")
+            return apiClient.internalServerError()
        
-        retData = apiClient._prepareBody(usedList)
-        
-        logger.info(type(retData))
-       
-        return apiClient.success(retData)
+        return apiClient.success(coupons)
 
 class Health(Resource):
     def get(self):
