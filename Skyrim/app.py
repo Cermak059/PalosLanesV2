@@ -795,7 +795,7 @@ api.add_resource(ResetPasswordForm, '/ResetPasswordForm/<verificationToken>')
 api.add_resource(ChangePassword, '/ChangePassword')
 api.add_resource(Authenticate, '/Authenticate')
 api.add_resource(Points, '/Points')
-api.add_resource(Bogo, '/RedeemCoupon')
+api.add_resource(RedeemCoupon, '/RedeemCoupon')
 api.add_resource(CheckAllCoupons, '/CheckAllCoupons')
 
 
