@@ -623,7 +623,7 @@ class Points(Resource):
             logger.error("Failed to update user {} with new points".format(findUser['Email']))
             return apiClient.internalServerError()
 
-class Bogo(Resource):
+class RedeemCoupon(Resource):
     def get(self):
 
         #Check if auth token is in headers
@@ -721,97 +721,22 @@ class Bogo(Resource):
         couponsRedeemed = findCoupon['Used']
         
         #Make coupon name variable
-        couponName = "BOGO"
+        couponName = checkData['Coupon']
+        
+        #Make sure coupon exists in crons
+        if not cronCollection.find_one({"Name": couponName})
+            return apiClient.badRequest("Coupon not available")
         
         #If coupon has been used return 400
         if couponName in couponsRedeemed:
             return apiClient.badRequest("Sorry... This coupon has already been redeemed")
-            
         else:
-            logger.info("Made it to else statment")
             #Update collection for used coupon
             if not usedCollection.update({"Email":findCoupon['Email']}, {"$push": {"Used": couponName}}):
                 logger.error("Failed to update coupon after being used")
                 return apiClient.internalServerError()
                 
             return apiClient.success({})
-            
-class FreeGame(Resource):
-    def post(self):
-        '''Check auth token first'''
-
-        #Check if auth token is in headers
-        authToken = request.headers.get("X-Auth-Token")
-        if not authToken:
-            return apiClient.unAuthorized()
-
-        #Check if token matches in DB
-        results = authCollection.find_one({"Token": authToken})
-        logger.info("Auth results: {}".format(results))
-        
-        #if no token in DB
-        if not results:
-            return apiClient.unAuthorized()
-        
-        #Check if token has expired
-        if TimestampExpired(results['Expires']):
-            logger.info("Auth token expired")
-            return apiClient.unAuthorized()
-
-        #Find user in users DB
-        user = collection.find_one({"Username" : results['Username']})
-        
-        #If no user found return 401
-        if not user:
-            return apiClient.unAuthorized()
-        
-        #Check if auth token comes from admin
-        if user['Type'] != "Admin":
-            return apiClient.unAuthorized()
-
-        '''Now handle body'''
-
-        #Load schema
-        schema = UserSchema()
-        
-        #Load json
-        try:
-            data = json.loads(request.data)
-        except Exception as e:
-            return apiClient.badRequest("Invalid json")
-
-        #Load point request against schema
-        try:
-            checkData = schema.load(data, partial=("Fname","Lname","Birthdate","Phone","League","Token","Password","Username","Points",))
-        except ValidationError as err:
-            return err.messages, 400
-
-        #Find coupon in Bogo collection
-        findCoupon = usedCollection.find_one({"Email":checkData['Email']})
-        
-        #If not found return 400
-        if not findCoupon:
-            return apiClient.badRequest("Coupon data not found")
-
-        #Make coupon list variable
-        couponsRedeemed = findCoupon['Used']
-        
-        #Make coupon name variable
-        couponName = "Thank You"
-        
-        #If coupon has been used return 400
-        if couponName in couponsRedeemed:
-            return apiClient.badRequest("Sorry... This coupon has already been redeemed")
-            
-        else:
-            logger.info("Made it to else statment")
-            #Update collection for used coupon
-            if not usedCollection.update({"Email":findCoupon['Email']}, {"$push": {"Used": couponName}}):
-                logger.error("Failed to update coupon after being used")
-                return apiClient.internalServerError()
-                
-            return apiClient.success({})
-            
 
 class CheckAllCoupons(Resource):
     def get(self):
@@ -870,8 +795,7 @@ api.add_resource(ResetPasswordForm, '/ResetPasswordForm/<verificationToken>')
 api.add_resource(ChangePassword, '/ChangePassword')
 api.add_resource(Authenticate, '/Authenticate')
 api.add_resource(Points, '/Points')
-api.add_resource(Bogo, '/BuyOneGetOne')
-api.add_resource(FreeGame, '/OneFreeGame')
+api.add_resource(Bogo, '/RedeemCoupon')
 api.add_resource(CheckAllCoupons, '/CheckAllCoupons')
 
 

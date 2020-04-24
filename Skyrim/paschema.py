@@ -68,3 +68,4 @@ class UserSchema(Schema):
      Password = fields.String(validate=validate.Length(min=6, max=12),required=True)
      Token = fields.String(required=True)
      Points = fields.Integer(required=True)
+     Coupon = fields.String(required=False)
