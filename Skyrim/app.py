@@ -724,7 +724,7 @@ class RedeemCoupon(Resource):
         couponName = checkData['Coupon']
         
         #Make sure coupon exists in crons
-        if not cronCollection.find_one({"Name": couponName})
+        if not cronCollection.find_one({"Name": couponName}):
             return apiClient.badRequest("Coupon not available")
         
         #If coupon has been used return 400
