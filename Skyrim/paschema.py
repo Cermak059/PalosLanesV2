@@ -69,3 +69,4 @@ class UserSchema(Schema):
      Token = fields.String(required=True)
      Points = fields.Integer(required=True)
      Coupon = fields.String(required=False)
+     CenterID = fields.String(required=True)

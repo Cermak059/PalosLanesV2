@@ -353,7 +353,7 @@ class Login(Resource):
           
         #Load user login data against schema
         try:
-            check_user = schema.load(data, partial=("Fname","Lname","Birthdate","Phone","Email","League","Token","Points",))
+            check_user = schema.load(data, partial=("Fname","Lname","Birthdate","Phone","Email","League","Token","Points","CenterID",))
         except ValidationError as err:
             return err.messages, 400
 
@@ -420,7 +420,7 @@ class Users(Resource):
       
         #Try to delete password and ID keys from dictionary
         try:
-            del (results['Password'],results['_id'],results['Timestamp'])
+            del (results['Password'],results['_id'],results['Timestamp'],results['CenterID'])
         except KeyError:
             logger.error("Failed to delete keys in dic")
             return apiClient.internalServerError()
@@ -438,7 +438,7 @@ class ResetRequest(Resource):
             return apiClient.badRequest("Invalid json")
 
         try:
-            authUser = schema.load(data, partial=("Fname","Lname","Birthdate","Phone","Token","League","Username","Password","Points",))
+            authUser = schema.load(data, partial=("Fname","Lname","Birthdate","Phone","Token","League","Username","Password","Points","CenterID",))
         except ValidationError as err:
             return err.messages, 404
 
@@ -487,7 +487,7 @@ class ChangePassword(Resource):
             return apiClient.badRequest("Invalid json")
 
         try:
-            resetUser = schema.load(data, partial=("Fname","Lname","Birthdate","Phone","League","Username","Email","Points",))
+            resetUser = schema.load(data, partial=("Fname","Lname","Birthdate","Phone","League","Username","Email","Points","CenterID",))
         except ValidationError as err:
             return err.messages, 400
 
@@ -596,7 +596,7 @@ class Points(Resource):
 
         #Load point request against schema
         try:
-            checkData = schema.load(data, partial=("Fname","Lname","Birthdate","Phone","League","Token","Password","Username",))
+            checkData = schema.load(data, partial=("Fname","Lname","Birthdate","Phone","League","Token","Password","Username","CenterID",))
         except ValidationError as err:
             return err.messages, 400
 
@@ -706,7 +706,7 @@ class RedeemCoupon(Resource):
 
         #Load point request against schema
         try:
-            checkData = schema.load(data, partial=("Fname","Lname","Birthdate","Phone","League","Token","Password","Username","Points",))
+            checkData = schema.load(data, partial=("Fname","Lname","Birthdate","Phone","League","Token","Password","Username","Points","CenterID",))
         except ValidationError as err:
             return err.messages, 400
 
