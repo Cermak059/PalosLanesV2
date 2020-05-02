@@ -596,7 +596,7 @@ class Points(Resource):
 
         #Load point request against schema
         try:
-            checkData = schema.load(data, partial=("Fname","Lname","Birthdate","Phone","League","Token","Password","Username","CenterID",))
+            checkData = schema.load(data, partial=("Fname","Lname","Birthdate","Phone","League","Token","Password","Username",))
         except ValidationError as err:
             return err.messages, 400
 
@@ -606,6 +606,9 @@ class Points(Resource):
         #Otherwise return 400
         if not findUser:
             return apiClient.badRequest("User account not found")
+            
+        if checkData['CenterID'] != findUser['CenterID']:
+            return apiClient.unAuthorized()
         
         #Create point variables
         newPts = checkData['Points']
