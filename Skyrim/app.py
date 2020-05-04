@@ -315,6 +315,7 @@ class VerifyUser(Resource):
         if tempUser['Type'] == "User":
             coupData = {}
             coupData['Email'] = tempUser['Email']
+            coupData['CenterID'] = tempUser['CenterID']
             coupData['Used'] = []
 
             if not usedCollection.insert_one(coupData):
@@ -627,43 +628,6 @@ class Points(Resource):
             return apiClient.internalServerError()
 
 class RedeemCoupon(Resource):
-    def get(self):
-
-        #Check if auth token is in headers
-        authToken = request.headers.get("X-Auth-Token")
-        if not authToken:
-            return apiClient.unAuthorized()
-
-        #Check if token matches in DB
-        results = authCollection.find_one({"Token": authToken})
-        logger.info("Auth results: {}".format(results))
-        
-        #if no token in DB
-        if not results:
-            return apiClient.unAuthorized()
-        
-        #Check if token has expired
-        if TimestampExpired(results['Expires']):
-            logger.info("Auth token expired")
-            return apiClient.unAuthorized()
-
-        #Find user in users DB
-        user = collection.find_one({"Username" : results['Username']})
-        
-        #If no user found return 401
-        if not user:
-            return apiClient.unAuthorized()
-
-        coupon = bogoCollection.find_one({"Email":user['Email']})
-
-        if not coupon:
-            return apiClient.badRequest("No coupon found")
-
-        if coupon['Used'] == True:
-            return apiClient.badRequest("Your coupon has already been redeemed")
-
-        return apiClient.success({})
-        
     def post(self):
         '''Check auth token first'''
 
@@ -709,7 +673,7 @@ class RedeemCoupon(Resource):
 
         #Load point request against schema
         try:
-            checkData = schema.load(data, partial=("Fname","Lname","Birthdate","Phone","League","Token","Password","Username","Points","CenterID",))
+            checkData = schema.load(data, partial=("Fname","Lname","Birthdate","Phone","League","Token","Password","Username","Points",))
         except ValidationError as err:
             return err.messages, 400
 
@@ -719,6 +683,10 @@ class RedeemCoupon(Resource):
         #If not found return 400
         if not findCoupon:
             return apiClient.badRequest("Coupon data not found")
+        
+        #Check that center ID matches
+        if findCoupon['CenterID'] != checkData['CenterID']:
+            return apiClient.unAuthorized()
 
         #Make coupon list variable
         couponsRedeemed = findCoupon['Used']
