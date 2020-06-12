@@ -798,9 +798,12 @@ class AdminCoupon(Resource):
             checkData = schema.load(data, partial=("Fname","Lname","Birthdate","Phone","Token","League","Username","Password","Points","Email",))
         except ValidationError as err:
             return err.messages, 400
-
         
-        if not cronCollection.insert_one(checkData):
+        insertData = {"Frequency":checkData['Expires'],
+                      "Name":checkData['Coupon'],
+                      "CenterID":checkData['CenterID']}
+
+        if not cronCollection.insert_one(insertData):
             logger.info("Failed to create admin coupon in cron collection")
             return apiClient.internalServerError()
 
