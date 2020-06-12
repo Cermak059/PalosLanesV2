@@ -360,8 +360,7 @@ class Login(Resource):
 
         #Find user in database with associated username
         results = collection.find_one({"Username": check_user['Username']})
-
-          
+  
         #Check if no results have been returned
         if not results:
             return apiClient.badRequest("Username not found")
@@ -744,12 +743,70 @@ class CheckAllCoupons(Resource):
            
         #Try to delete password and ID keys from dictionary
         try:
-            del (coupons['Email'],coupons['_id'])
+            del (coupons['Email'],coupons['_id'],coupons['CenterID'])
         except KeyError:
             logger.error("Failed to delete keys in dic")
             return apiClient.internalServerError()
        
         return coupons
+
+class AdminCoupon(Resource):
+    def post(self):
+    
+        '''First handle auth token'''
+
+        #Check if auth token is in headers
+        authToken = request.headers.get("X-Auth-Token")
+        if not authToken:
+            return apiClient.unAuthorized()
+
+        #Check if token matches in DB
+        results = authCollection.find_one({"Token": authToken})
+        
+        #If no token in DB
+        if not results:
+            return apiClient.unAuthorized()
+        
+        #Check if auth token is expired
+        if TimestampExpired(results['Expires']):
+            logger.info("Auth token expired")
+            return apiClient.unAuthorized()
+        
+        #Find user in users DB
+        user = collection.find_one({"Username": results['Username']})
+        
+        #If no user found return 401
+        if not user:
+            return apiClient.unAuthorized()
+        
+        #If user does not equal admin return 401
+        if user['Type'] != "Admin":
+            return apiClient.unAuthorized()
+            
+        '''Now handle body'''
+
+        schema = UserSchema()
+        
+        #Try to load json
+        try:
+            data = json.loads(request.data)
+        except Exception as e:
+            return apiClient.badRequest("Invalid json")
+
+        #Load data into schema
+        try:
+            checkData = schema.load(data, partial=("Fname","Lname","Birthdate","Phone","Token","League","Username","Password","Points","Email",))
+        except ValidationError as err:
+            return err.messages, 400
+
+        
+        if not cronCollection.insert_one(checkData):
+            logger.info("Failed to create admin coupon in cron collection")
+            return apiClient.internalServerError()
+
+        return apiClient.success({})
+
+        
 
 class Health(Resource):
     def get(self):
@@ -768,6 +825,7 @@ api.add_resource(Authenticate, '/Authenticate')
 api.add_resource(Points, '/Points')
 api.add_resource(RedeemCoupon, '/RedeemCoupon')
 api.add_resource(CheckAllCoupons, '/CheckAllCoupons')
+api.add_resource(AdminCoupon, '/CreateCoupon')
 
 
 

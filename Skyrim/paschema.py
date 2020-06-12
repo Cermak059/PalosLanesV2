@@ -70,3 +70,4 @@ class UserSchema(Schema):
      Points = fields.Integer(required=True)
      Coupon = fields.String(required=False)
      CenterID = fields.String(required=True)
+     Expires = fields.Integer(required=False)
