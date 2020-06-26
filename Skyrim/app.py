@@ -787,8 +787,10 @@ class AdminCoupon(Resource):
             checkData = schema.load(data, partial=("Fname","Lname","Birthdate","Phone","Token","League","Username","Password","Points","Email",))
         except ValidationError as err:
             return err.messages, 400
+            
+        exp = getExpirationTime(hours=checkData['Expires'])
         
-        insertData = {"Frequency":checkData['Expires'],
+        insertData = {"Expires": exp,
                       "Name":checkData['Coupon'],
                       "CenterID":checkData['CenterID']}
 
