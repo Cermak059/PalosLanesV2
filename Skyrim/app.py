@@ -78,17 +78,6 @@ def _removeExpiredAuthTokens():
             logger.info("Cleaned up token{}".format(doc['Token']))
     logger.info("Finished cleaning up expired auth tokens")
 
-'''def _checkWeekDay():
-    if datetime.today().weekday() == 0:
-        logger.info("Today is Monday, updating coupons DB...")
-
-        if not bogoCollection.update_many({}, {"$set":{"Used":False}}):
-            logger.error("Failed to reset BOGO coupons")
-            
-        logger.info("Successfully reset BOGO coupons")
-    else:
-        logger.info("Today is not Monday waiting to cleanup coupons")'''
-
 def _checkExpiredCoupons():
     '''Checking for expired coupons'''
     
@@ -803,7 +792,7 @@ class AdminCoupon(Resource):
                       "Name":checkData['Coupon'],
                       "CenterID":checkData['CenterID']}
 
-        if not cronCollection.insert_one(insertData):
+        if not couponsCollection.insert_one(insertData):
             logger.info("Failed to create admin coupon in cron collection")
             return apiClient.internalServerError()
 
