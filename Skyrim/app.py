@@ -729,14 +729,22 @@ class CheckAllCoupons(Resource):
 
         if not coupons:
             return apiClient.badRequest("No coupons found")
-           
+            
+        #Check to see if cloud coupon was created in coupons collection
+        cloudCoupon = couponsCollection.find_one({"CenterID": coupons['CenterID']})
+        
+        #If cloud coupon is found add it to array list
+        if cloudCoupon:
+            logger.info("Cloud coupon found")
+            coupons['CloudCoupon'] = cloudCoupon['Name']
+            
         #Try to delete password and ID keys from dictionary
         try:
             del (coupons['Email'],coupons['_id'],coupons['CenterID'])
         except KeyError:
             logger.error("Failed to delete keys in dic")
             return apiClient.internalServerError()
-       
+        
         return coupons
 
 class AdminCoupon(Resource):
