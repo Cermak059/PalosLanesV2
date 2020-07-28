@@ -736,7 +736,9 @@ class CheckAllCoupons(Resource):
         #If cloud coupon is found add it to array list
         if cloudCoupon:
             logger.info("Cloud coupon found")
-            coupons['CloudCoupon'] = cloudCoupon['Name']
+            if not coupons['Used'].append(cloudCoupon['Name']):
+                logger.error("Something happened")
+            
             
         #Try to delete password and ID keys from dictionary
         try:
