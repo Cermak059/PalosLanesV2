@@ -682,9 +682,10 @@ class RedeemCoupon(Resource):
         #Make coupon name variable
         couponName = checkData['Coupon']
         
-        #Make sure coupon exists in crons
+        #Make sure coupon exists in crons and coupon collections
         if not cronCollection.find_one({"Name": couponName}):
-            return apiClient.badRequest("Coupon not available")
+            if not couponsCollection.find_one({"Name": couponName}):
+                return apiClient.badRequest("Coupon not available")
         
         #If coupon has been used return 400
         if couponName in couponsRedeemed:
@@ -807,7 +808,7 @@ class AdminCoupon(Resource):
                       "CenterID":checkData['CenterID']}
 
         if not couponsCollection.insert_one(insertData):
-            logger.info("Failed to create admin coupon in cron collection")
+            logger.info("Failed to create admin coupon in coupon collection")
             return apiClient.internalServerError()
 
         return apiClient.success({})
