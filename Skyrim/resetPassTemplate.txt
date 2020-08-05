@@ -28,9 +28,11 @@
 				var confirmPassword = $("#confirmPassword").val();
 				if (newPassword == "" || confirmPassword == "") {{
 					alert("Fields cannot be empty");
+                    return;
 				}}
 				if (newPassword != confirmPassword) {{
 					alert("Passwords do not match");
+                    return;
 				}}
 				$.ajax({{
 					url: Url,
