@@ -449,7 +449,7 @@ class ResetRequest(Resource):
         #Send email to reset user password
         with open(FORGOT_TEMPLATE, 'r') as stream:
             emailBodyTemplate = stream.read()
-        emailBody = emailBodyTemplate.format(user_email=authUser['Email'],reset_url="https://chicagolandbowlingservice.com/api/ResetPasswordForm/{}".format(tempToken))
+        emailBody = emailBodyTemplate.format(user_email=authUser['Email'],reset_url="http://3.15.199.174:5000/ResetPasswordForm/{}".format(tempToken))
         SendEmail(authUser['Email'], "Reset Account Password", emailBody)
 
 class ResetPasswordForm(Resource):
@@ -700,6 +700,8 @@ class RedeemCoupon(Resource):
 
 class CheckAllCoupons(Resource):
     def get(self):
+    
+        '''Check Auth Token First'''
 
         #Check if auth token is in headers
         authToken = request.headers.get("X-Auth-Token")
@@ -731,14 +733,13 @@ class CheckAllCoupons(Resource):
         if not coupons:
             return apiClient.badRequest("No coupons found")
             
-        #Check to see if cloud coupon was created in coupons collection
+        #Check to see if cloud coupon was created for center in coupons collection
         cloudCoupon = couponsCollection.find_one({"CenterID": coupons['CenterID']})
         
         #If cloud coupon is found add it to array list
         if cloudCoupon:
             logger.info("Cloud coupon found")
             coupons['CloudCoupon'] = True
-            
         else:
             logger.info("No cloud coupon found")
             coupons['CloudCoupon'] = False
