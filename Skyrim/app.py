@@ -22,7 +22,9 @@ from paconfig import VERIFY_EMAIL_TEMPLATE,\
                      RESET_TEMPLATE,\
                      CRON_SLEEP_AUTH,\
                      CRON_SLEEP_COUPONS,\
-                     ADMIN_USERS
+                     ADMIN_USERS,\
+                     APP_NAME,\
+                     LOG_PATH
 from pamongo import Authorization,\
                     resetAuth,\
                     collection,\
@@ -39,12 +41,13 @@ from pacrypto import EncryptPassword,\
                      getExpirationTime,\
                      TimestampExpired
 
+'''Version 1.2'''
                 
 app = Flask(__name__)
 api = Api(app)
 
 apiClient = PaApi()
-logger = PaLogger()
+logger = PaLogger(APP_NAME, LOG_PATH)
         
 def _removeExpiredPendingUsers():
 
